@@ -1,4 +1,22 @@
-# gamecore-engine
-Un Game Engine bastante básico en el que estoy trabajando de vez en cuando. No esperes nada muy profesional
+# GameCore Engine
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/PapitaConPure/gamecore-engine)
 
+Un motor de juegos bastante básico en el que estoy trabajando de vez en cuando. No esperes nada muy profesional
 En otro momento pienso un mejor nombre. Por ahora, GameCore Engine suena gracioso
+
+## Índice
+* [Tecnologías](#tecnologías)
+* [Pendiente](#pendiente)
+* [Desarrolladores](#desarrolladores)
+
+## Tecnologías
+.NET Framework 4.7.2
+
+## Pendiente
+* Colliders con polígonos cóncavos y convexos
+* Soporte para renderizado en ConsoleApplications y Forms
+* Tal vez mejorar Sequencers
+* Añadir clase Rect a partir de un Vec2 y un ancho y alto si se vuelve muy necesario
+
+## Desarrolladores
+* Papita con Puré
