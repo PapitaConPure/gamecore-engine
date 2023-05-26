@@ -15,6 +15,7 @@ En otro momento pienso un mejor nombre. Por ahora, GameCore Engine suena gracios
 ## Pendiente
 * Colliders con polígonos cóncavos y convexos
 * Soporte para renderizado en ConsoleApplications y Forms
+* Considerar una implementación genérica de una clase Stage, tal vez mover las instancePools de la clase Game a esta
 * Tal vez mejorar Sequencers
 * Añadir clase Rect a partir de un Vec2 y un ancho y alto si se vuelve muy necesario
 
