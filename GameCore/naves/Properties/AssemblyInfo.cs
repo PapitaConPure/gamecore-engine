@@ -24,10 +24,10 @@ using System.Runtime.InteropServices;
 
 // La información de versión de un ensamblado consta de los cuatro valores siguientes:
 //
-//      Versión principal
-//      Versión secundaria
-//      Número de compilación
-//      Revisión
+//	  Versión principal
+//	  Versión secundaria
+//	  Número de compilación
+//	  Revisión
 //
 // Puede especificar todos los valores o usar los valores predeterminados de número de compilación y de revisión
 // utilizando el carácter "*", como se muestra a continuación:
