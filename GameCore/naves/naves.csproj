@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\Core\Components\Rect.cs" />
     <Compile Include="src\Core\Controller.cs" />
     <Compile Include="src\Core\Components\Collider.cs" />
     <Compile Include="src\Core\Display\ConsoleDisplay.cs" />

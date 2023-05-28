@@ -141,9 +141,9 @@ namespace GameCore {
 		/// <seealso cref="Magnitude"/>
 		public double Length => this.Magnitude;
 		/// <summary>
-		/// Ángulo (en radianes) del vector, desde el origen (0, 0) hasta la posición que apunta
+		/// Ángulo (en radianes) del vector, desde el origen (0, 0) en relación al vector unitario (1, 0) hasta la posición que apunta
 		/// </summary>
-		public double Angle => Math.Atan2(this.y, this.x);
+		public double Angle => Math.Acos(this.x);
 
 		/// <summary>
 		/// Calcula el desplazamiento de este <see cref="Vec2"/> por la cantidad especificada para cada componente
@@ -193,18 +193,32 @@ namespace GameCore {
 		}
 
 		/// <summary>
+		/// Calcula el <see cref="Vec2"/> resultante de una interpolación linear entre este <see cref="Vec2"/> y <paramref name="end"/>, con una proporción especificada por <paramref name="proportion"/>
+		/// </summary>
+		/// <param name="end">Punto en el cual la proporción es de 100%</param>
+		/// <param name="proportion">Proporción de la interpolación, siendo 0 el inicio y 1 el final</param>
+		/// <returns>El <see cref="Vec2"/> resultante de la interpolación</returns>
+		public Vec2 Lerp(Vec2 end, double proportion) {
+			double xx = MathUtils.Lerp(this.x, end.x, proportion);
+			double yy = MathUtils.Lerp(this.y, end.y, proportion);
+
+			return new Vec2(xx, yy);
+		}
+
+		/// <summary>
 		/// Calcula el ángulo entre la dirección de este <see cref="Vec2"/> y la recta formada desde el origen (0, 0) hasta el punto especificado
 		/// </summary>
 		/// <returns>Ángulo calculado (en radianes)</returns>
 		public double AngleTowards(double x, double y) {
-			return Math.Atan2(y - this.y, x - this.x);
+			Vec2 other = new Vec2(x, y);
+			return this.AngleTowards(other);
 		}
 		/// <summary>
 		/// Calcula el ángulo entre la dirección de este <see cref="Vec2"/> y la del otro especificado
 		/// </summary>
 		/// <returns>Ángulo calculado (en radianes)</returns>
 		public double AngleTowards(Vec2 other) {
-			return Math.Atan2(other.y - this.y, other.x - this.x);
+			return Math.Acos(this.Normalized.Dot(other.Normalized));
 		}
 
 		/// <summary>

@@ -60,7 +60,7 @@ namespace naves {
 		public int PowerItems() => 32;
 		public int PointItems() => 16;
 		public Display Display() => new Display(new ConsoleRender2D("WWW\n(O)\n\\_/", ConsoleColor.Magenta, true));
-		public Collider Collider(GameObject self) => new RectCollider(self, new Vec2(-1, -1), new Vec2(1, 1));
+		public Collider Collider(GameObject self) => new RectCollider(self, new Rect(new Vec2(-1, -1), new Vec2(1, 1)));
 	}
 
 	struct Enemy3: ISpawnType {
@@ -83,7 +83,7 @@ namespace naves {
 
 			return new Display(new ConsoleComplexRender2D(component, true));
 		}
-		public Collider Collider(GameObject self) => new RectCollider(self, new Vec2(-1, -1), new Vec2(1, 0));
+		public Collider Collider(GameObject self) => new RectCollider(self, new Rect(new Vec2(-1, -1), new Vec2(1, 0)));
 	}
 
 	class EnemyBullet: GameObject {

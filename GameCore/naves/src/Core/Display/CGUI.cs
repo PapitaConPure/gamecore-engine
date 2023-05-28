@@ -65,28 +65,12 @@ namespace GameCore {
 			Console.ResetColor();
 		}
 
-		private static void DrawVerticalLine(int cursorTop, int cursorLeft, int height, char c) {
-			int tempCursorTop = Console.CursorTop;
-			int tempCursorLeft = Console.CursorLeft;
-
-			for (int i = 0; i < height; i++) {
-				Console.CursorTop = cursorTop + i;
-				Console.CursorLeft = cursorLeft;
-				Console.Write(c);
-			}
-
-			Console.CursorTop = tempCursorTop;
-			Console.CursorLeft = tempCursorLeft;
-		}
-
 		public static int NumberCharacters(int n) {
 			return Convert.ToString(n).Length;
 		}
-
 		public static int NumberCharacters(long n) {
 			return Convert.ToString(n).Length;
 		}
-
 		public static int NumberCharacters(double n) {
 			return Convert.ToString(n).Length;
 		}
@@ -124,6 +108,41 @@ namespace GameCore {
 			Console.Write(String.Format(new CultureInfo("en"), "{0:0.00}{1}", Math.Min(tps, 1000), ticksSuffix));
 			Console.ForegroundColor = ConsoleColor.Gray;
 			Console.BackgroundColor = ConsoleColor.Black;
+		}
+
+		public static void DrawText(Vec2 pos, string text) {
+			Console.SetCursorPosition(pos.IX, pos.IY);
+			Console.Write(text);
+		}
+		public static void DrawText(Vec2 pos, string text, ConsoleColor color) {
+			ConsoleColor previousFgColor = Console.ForegroundColor;
+
+			Console.ForegroundColor = color;
+			DrawText(pos, text);
+
+			Console.ForegroundColor = previousFgColor;
+		}
+		public static void DrawText(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
+			ConsoleColor previousBgColor = Console.BackgroundColor;
+
+			Console.BackgroundColor = bgColor;
+			DrawText(pos, text, fgColor);
+
+			Console.BackgroundColor = previousBgColor;
+		}
+
+		private static void DrawVerticalLine(int cursorTop, int cursorLeft, int height, char c) {
+			int tempCursorTop = Console.CursorTop;
+			int tempCursorLeft = Console.CursorLeft;
+
+			for(int i = 0; i < height; i++) {
+				Console.CursorTop = cursorTop + i;
+				Console.CursorLeft = cursorLeft;
+				Console.Write(c);
+			}
+
+			Console.CursorTop = tempCursorTop;
+			Console.CursorLeft = tempCursorLeft;
 		}
 	}
 }

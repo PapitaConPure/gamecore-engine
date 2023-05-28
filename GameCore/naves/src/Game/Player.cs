@@ -66,6 +66,8 @@ namespace naves {
 			this.ProcessITicks();
 			this.CheckDamage();
 			this.CheckInputs();
+
+			CGUI.DrawText(new Vec2(CGUI.GameCenter, CGUI.GameMiddle), "Porno", ConsoleColor.DarkYellow);
 		}
 
 		public override void OnGameEvent(GameEventArgs e) {

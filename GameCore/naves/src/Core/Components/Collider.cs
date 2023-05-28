@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace GameCore {
 	/// <summary>
@@ -39,7 +40,7 @@ namespace GameCore {
 		/// <param name="v1">Vector de la primera esquina del rectángulo</param>
 		/// <param name="v2">Dector de la esquina opuesta del rectángulo</param>
 		/// <returns></returns>
-		public abstract bool RectIntersect(Vec2 v1, Vec2 v2);
+		public abstract bool RectIntersect(Rect r);
 		/// <summary>
 		/// Determina si este colisionador se encuentra dentro del área circular descrita
 		/// </summary>
@@ -61,7 +62,7 @@ namespace GameCore {
 
 		public override bool Inside(Vec2 pos) => false;
 		public override bool Intersect(Collider collider) => false;
-		public override bool RectIntersect(Vec2 v1, Vec2 v2) => false;
+		public override bool RectIntersect(Rect r) => false;
 		public override bool CircleIntersect(Vec2 o, double r) => false;
 	}
 
@@ -97,7 +98,7 @@ namespace GameCore {
 
 		public override bool Inside(Vec2 pos) => this.CalculatedPos == pos.Rounded;
 		public override bool Intersect(Collider collider) => collider.Inside(this.CalculatedPos);
-		public override bool RectIntersect(Vec2 v1, Vec2 v2) => this.CalculatedPos.InsideRect(v1, v2);
+		public override bool RectIntersect(Rect r) => this.CalculatedPos.InsideRect(r.IV1, r.IV2);
 		public override bool CircleIntersect(Vec2 o, double r) => this.CalculatedPos.DistanceTo(o) < r;
 	}
 
@@ -106,13 +107,9 @@ namespace GameCore {
 	/// </summary>
 	public class RectCollider : Collider {
 		/// <summary>
-		/// Primera esquina del rectángulo del colisionador
+		/// Área rectangular del colisionador
 		/// </summary>
-		private readonly Vec2 v1;
-		/// <summary>
-		/// Esquina opuesta del rectángulo del colisionador
-		/// </summary>
-		private readonly Vec2 v2;
+		private readonly Rect r;
 
 		/// <summary>
 		/// Crea un componente colisionador rectangular
@@ -120,21 +117,8 @@ namespace GameCore {
 		/// <param name="owner">Dueño del componente</param>
 		/// <param name="v1">Vector de la primera esquina del rectángulo</param>
 		/// <param name="v2">Vector de la esquina opuesta del rectángulo</param>
-		public RectCollider(GameObject owner, Vec2 v1, Vec2 v2) : base(owner) {
-			if(v1.X > v2.X) {
-				double t = v1.X;
-				v1.X = v2.X;
-				v2.X = t;
-			}
-
-			if(v1.Y > v2.Y) {
-				double t = v1.Y;
-				v1.Y = v2.Y;
-				v2.Y = t;
-			}
-
-			this.v1 = new Vec2(v1);
-			this.v2 = new Vec2(v2);
+		public RectCollider(GameObject owner, Rect r) : base(owner) {
+			this.r = r.Copy;
 		}
 
 		/// <summary>
@@ -142,24 +126,23 @@ namespace GameCore {
 		/// </summary>
 		private Vec2 CalculatedPos { get => ((this.V1 + this.V2) / 2).Rounded; }
 		/// <summary>
+		/// Área del colisionador en relación al dueño
+		/// </summary>
+		private Rect CalculatedArea { get => new Rect(this.V1, this.V2); }
+		/// <summary>
 		/// Vector de la primera esquina del rectángulo en relación al dueño del colisionador
 		/// </summary>
-		public Vec2 V1 { get => this.v1 + this.owner.Pos; }
+		public Vec2 V1 { get => this.r.V1 + this.owner.Pos; }
 		/// <summary>
 		/// Vector de la esquina opuesta del rectángulo en relación al dueño del colisionador
 		/// </summary>
-		public Vec2 V2 { get => this.v2 + this.owner.Pos; }
+		public Vec2 V2 { get => this.r.V2 + this.owner.Pos; }
 
 		public override bool Inside(Vec2 pos) => pos.InsideRect(this.V1.Rounded, this.V2.Rounded);
-		public override bool Intersect(Collider collider) => collider.RectIntersect(this.V1, this.V2);
+		public override bool Intersect(Collider collider) => collider.RectIntersect(this.CalculatedArea);
 
-		public override bool RectIntersect(Vec2 v1, Vec2 v2) {
-			if(v1.IX > this.V2.IX || v2.X < this.V1.IX)
-				return false;
-			if(v1.IY > this.V2.IY || v2.Y < this.V1.IY)
-				return false;
-
-			return true;
+		public override bool RectIntersect(Rect r) {
+			return this.r.Rounded.Intersects(r.Rounded);
 		}
 
 		public override bool CircleIntersect(Vec2 o, double r) {
@@ -189,11 +172,9 @@ namespace GameCore {
 		public override bool Inside(Vec2 pos) => this.Pos.Rounded.DistanceTo(pos) <= r;
 		public override bool Intersect(Collider collider) => collider.CircleIntersect(this.Pos, this.r);
 
-		public override bool RectIntersect(Vec2 v1, Vec2 v2) {
-			Vec2 bestCandidate = new Vec2(
-				MathUtils.Clamp(this.Pos.IX, v1.IX, v2.IX),
-				MathUtils.Clamp(this.Pos.IY, v1.IY, v2.IY)
-			);
+		public override bool RectIntersect(Rect r) {
+			Vec2 bestCandidate = this.Pos.Rounded;
+			bestCandidate.Clamp(r.IV1, r.IV2);
 
 			return this.Inside(bestCandidate);
 		}
@@ -207,23 +188,59 @@ namespace GameCore {
 	/// <summary>
 	/// Representa un componente colisionador poligonal
 	/// </summary>
-	public class PolygonCollider : Collider {
-		//PENDIENTE
-		//private readonly List<Vec2> polygon;
-		//private readonly bool closed;
+	public class PolygonCollider: Collider {
+		private readonly List<Vec2> polygon;
+		private Rect bbox;
 
-		public PolygonCollider(GameObject owner/*, List<Vec2> polygon, bool closed = false*/) : base(owner) {
-			//PENDIENTE
-			//this.polygon = polygon;
-			//this.closed = closed;
+		public PolygonCollider(GameObject owner, List<Vec2> polygon) : base(owner) {
+			this.polygon = polygon;
+			this.CalculateBoundingBox();
+		}
+
+		public override bool Inside(Vec2 pos) {
+			if(!bbox.Rounded.Inside(pos.Rounded))
+				return false;
+
+			int vertices = polygon.Count;
+			bool inside = false;
+
+			for(int i = 0, j = vertices - 1; i < vertices; j = i++) {
+				if((polygon[i].Y < pos.Y && polygon[j].Y >= pos.Y
+				|| polygon[j].Y < pos.Y && polygon[i].Y >= pos.Y)
+				&& (polygon[i].X <= pos.X || polygon[j].X <= pos.X)) {
+					if(polygon[i].X + (pos.Y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) * (polygon[j].X - polygon[i].X) < pos.X)
+						inside = !inside;
+				}
+			}
+
+			return inside;
 		}
 
 		//*No tengo ni idea de cómo voy a hacer esto*
-		public override bool Inside(Vec2 pos) => false;
 		public override bool Intersect(Collider collider) => false;
 
-		public override bool RectIntersect(Vec2 v1, Vec2 v2) => false;
+		public override bool RectIntersect(Rect r) => false;
 
 		public override bool CircleIntersect(Vec2 o, double r) => false;
+
+		private void CalculateBoundingBox() {
+			double minX = double.MaxValue;
+			double minY = double.MaxValue;
+			double maxX = double.MinValue;
+			double maxY = double.MinValue;
+
+			foreach(Vec2 vertex in polygon) {
+				if(vertex.X < minX)
+					minX = vertex.X;
+				if(vertex.Y < minY)
+					minY = vertex.Y;
+				if(vertex.X > maxX)
+					maxX = vertex.X;
+				if(vertex.Y > maxY)
+					maxY = vertex.Y;
+			}
+
+			this.bbox = new Rect(minX, minY, maxX, maxY);
+		}
 	}
 }
