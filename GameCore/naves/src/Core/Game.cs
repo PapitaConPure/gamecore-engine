@@ -13,6 +13,7 @@ namespace GameCore {
 	/// Representa un sistema general básico de juegos
 	/// </summary>
 	public static class Game {
+		#region Atributos Básicos
 		/// <summary>
 		/// Contador de ticks transcurridos en el escenario actual
 		/// </summary>
@@ -22,30 +23,34 @@ namespace GameCore {
 		/// </summary>
 		private static bool ended = false;
 		/// <summary>
-		/// Método de entrada/control del jugador
-		/// </summary>
-		private static Controller controller;
-		/// <summary>
 		/// Generador de números aleatorios
 		/// </summary>
 		private static readonly Random rng = new Random();
+		/// <summary>
+		/// Método de entrada/control del jugador
+		/// </summary>
+		private static Controller controller;
+		#endregion
+
+		#region Colecciones de Instancias
 		/// <summary>
 		/// Lista de instancias <see cref="GameObject"/> activas en la escena actual
 		/// </summary>
 		private static readonly List<GameObject> instances = new List<GameObject>();
 		/// <summary>
-		/// Lista de instancias <see cref="GameObject"/> pendientes para ser añadidas en la escena actual
+		/// Lista de instancias <see cref="GameObject"/> activas en la escena actual
 		/// </summary>
-		private static readonly List<GameObject> pendingAdditions = new List<GameObject>();
-		/// <summary>
-		/// Lista de instancias <see cref="GameObject"/> pendientes para ser removidas de la escena actual
-		/// </summary>
-		private static readonly List<GameObject> pendingRemovals = new List<GameObject>();
+		private static readonly List<GameObject> disabledInstances = new List<GameObject>();
+		#endregion
 
+		#region Eventos de Juego
+		#region Delegados
 		public delegate void GameEventHandler(GameEventArgs e);
 		public delegate void GameInstanceEventHandler(GameObject instance, GameInstanceEventArgs e);
 		public delegate void GameInstanceDeletedEventHandler(GameObject instance, GameInstanceDeletedEventArgs e);
+		#endregion
 
+		#region Handlers
 		/// <summary>
 		/// Evento general del juego.
 		/// Se acciona a medida que se va procesando un tick, o por cambios generales en la escena
@@ -64,7 +69,9 @@ namespace GameCore {
 		/// </summary>
 		/// <remarks>Utiliza el enumerador <see cref="InstanceDeletedEventReason"/></remarks>
 		public static event GameInstanceDeletedEventHandler GameInstanceDeletedEvent;
+		#endregion
 
+		#region Eventos
 		private static void OnGameEvent(GameEventArgs e) {
 			if(GameEvent != null)
 				GameEvent.Invoke(e);
@@ -79,7 +86,9 @@ namespace GameCore {
 			if(GameInstanceDeletedEvent != null)
 				GameInstanceDeletedEvent.Invoke(instance, e);
 		}
+		#endregion
 
+		#region Suscripciones y Mensajes
 		/// <summary>
 		/// Suscribe una instancia <see cref="GameObject"/> al evento indicado por <paramref name="eventType"/> en el tick actual
 		/// </summary>
@@ -159,9 +168,15 @@ namespace GameCore {
 			/// <summary>Instancia asesinada por otra instancia</summary>
 			Killed,
 		}
+		#endregion
+		#endregion
 
+		#region Propiedades de Juego
 		/// <inheritdoc cref="ticks"/>
 		public static long Ticks { get => ticks; }
+
+		public static bool Debug { get; set; }
+
 		/// <inheritdoc cref="ended"/>
 		public static bool Ended {
 			get => ended;
@@ -170,12 +185,14 @@ namespace GameCore {
 					ended = value;
 			}
 		}
+
 		/// <inheritdoc cref="rng"/>
 		public static Random RNG { get => rng; }
-		/// <inheritdoc cref="previousKey"/>
-		public static GameInput PreviousKey => controller.PreviousKey;
-		/// <inheritdoc cref="currentKey"/>
-		public static GameInput CurrentKey => controller.CurrentKey;
+
+		/// <inheritdoc cref="Controller.previousButton"/>
+		public static GameInput PreviousButton => controller.PreviousButton;
+		/// <inheritdoc cref="Controller.currentButton"/>
+		public static GameInput CurrentButton => controller.CurrentButton;
 
 		public static GameTarget Target {
 			set {
@@ -189,8 +206,11 @@ namespace GameCore {
 				}
 			}
 		}
+		#endregion
 
+		#region Ciclo de Juego y Control de Escena
 		/// <summary>
+		/// Puerta de acceso al bucle principal del juego.
 		/// Procesa el juego tick por tick hasta que algo cause su finalización
 		/// </summary>
 		public static void Loop() {
@@ -217,23 +237,41 @@ namespace GameCore {
 
 			controller.Update(ticks);
 
-			foreach(GameObject instance in instances)
-				instance.Update();
+			foreach(GameObject instance in instances.ToList())
+				instance.Update(deltaTime);
 			OnGameEvent(new GameEventArgs(EventReason.TickProcessed));
 
 			CGUI.DrawTPS(deltaTime);
 			CGUI.EmptyGameFrame();
 			CGUI.DrawGameFrame(instances);
+			//if(Debug) {
+			//	string activeInstanceCount = Convert.ToString(instances.Count);
+			//	string disabledInstanceCount = Convert.ToString(disabledInstances.Count);
+
+			//	CGUI.DrawText(CGUI.UITopLeft.Offset(1, 1), activeInstanceCount, ConsoleColor.Yellow);
+			//	CGUI.DrawText(CGUI.UITopLeft.Offset(2 + activeInstanceCount.Length, 1), disabledInstanceCount, ConsoleColor.DarkCyan);
+			//}
+			CGUI.DrawSurface();
 			OnGameEvent(new GameEventArgs(EventReason.TickRendered));
 
-			PerformInstanceChanges();
 			ticks += 1;
 			OnGameEvent(new GameEventArgs(EventReason.TickCounted));
 		}
 
 		/// <summary>
-		/// Marca una instancia <see cref="GameObject"/> para añadirla al juego en el siguiente tick 
-		/// y dispara un <see cref="GameInstanceEvent"/> para todas las instancias actuales
+		/// Reinicia el contador de ticks y la lista de instancias
+		/// </summary>
+		public static void ClearState() {
+			ticks = 0;
+			instances.Clear();
+		}
+		#endregion
+
+		#region Control de Instancias
+		#region Manipulación de Instancias
+		/// <summary>
+		/// Añade una instancia <see cref="GameObject"/> al juego y dispara un <see cref="GameInstanceEvent"/> para todas las instancias actuales
+		/// 
 		/// </summary>
 		/// <remarks>
 		/// Asegúrate de no suscribir la instancia recién creada antes de añadirla si no quieres que esta también reciba el evento de su propia adición
@@ -241,14 +279,13 @@ namespace GameCore {
 		/// <param name="instance">Nueva instancia del juego</param>
 		/// <param name="reason">Razón de adición</param>
 		public static void AddInstance(GameObject instance, InstanceEventReason reason = InstanceEventReason.None) {
-			pendingAdditions.Add(instance);
+			instances.Add(instance);
 
 			OnGameInstanceEvent(instance, new GameInstanceEventArgs(reason));
 		}
 
 		/// <summary>
-		/// Marca una instancia <see cref="GameObject"/> para eliminarla del juego en el siguiente tick 
-		/// y dispara un <see cref="GameInstanceDeletedEvent"/> para todas las instancias actuales (sin incluir la recién removida).
+		/// Elimina una instancia <see cref="GameObject"/> del juego y dispara un <see cref="GameInstanceDeletedEvent"/> para todas las instancias actuales (sin incluir la recién removida).
 		/// Si la instancia especificada ya estaba marcada para eliminar en este tick, no pasa nada
 		/// </summary>
 		/// <remarks>
@@ -257,10 +294,10 @@ namespace GameCore {
 		/// <param name="instance">Instancia a eliminar del juego</param>
 		/// <param name="reason">Razón de eliminación</param>
 		public static void DeleteInstance(GameObject instance, InstanceDeletedEventReason reason = InstanceDeletedEventReason.None) {
-			if(pendingRemovals.Contains(instance))
+			if(!instances.Contains(instance))
 				return;
 
-			pendingRemovals.Add(instance);
+			instances.Remove(instance);
 
 			GameEvent -= instance.OnGameEvent;
 			GameInstanceEvent -= instance.OnGameInstanceEvent;
@@ -269,33 +306,44 @@ namespace GameCore {
 		}
 
 		/// <summary>
-		/// Reinicia el contador de ticks, las listas de instancias y establece una nueva secuencia de nivel
+		/// 
 		/// </summary>
-		/// <param name="stage">Nueva secuencia de nivel</param>
-		public static void ClearState() {
-			ticks = 0;
-			instances.Clear();
-			pendingAdditions.Clear();
-			pendingRemovals.Clear();
+		/// <param name="instance"></param>
+		public static void DisableInstance(GameObject instance, InstanceEventReason reason = InstanceEventReason.None) {
+			if(instances.Remove(instance))
+				disabledInstances.Add(instance);
+
+			GameEvent -= instance.OnGameEvent;
+			GameInstanceEvent -= instance.OnGameInstanceEvent;
+			GameInstanceDeletedEvent -= instance.OnGameInstanceDeletedEvent;
+			OnGameInstanceEvent(instance, new GameInstanceEventArgs(reason));
 		}
 
 		/// <summary>
-		/// Traduce los segundos ingresados a ticks del juego
+		/// 
 		/// </summary>
-		/// <remarks>No tiene en cuenta las variaciones de tiempo que puedan ocurrir por tick, así que es solo un estimado</remarks>
-		/// <param name="s">Segundos</param>
-		/// <returns>La cantidad de ticks que ocurren en el periodo especificado</returns>
-		public static long Seconds(double s) {
-			return Convert.ToInt64(s * (1000 / Clock.BaseTick));
-		}
+		/// <param name="instance"></param>
+		public static void EnableInstance(GameObject instance, InstanceEventReason reason = InstanceEventReason.None) {
+			if(disabledInstances.Remove(instance))
+				instances.Add(instance);
 
+			GameEvent -= instance.OnGameEvent;
+			GameInstanceEvent -= instance.OnGameInstanceEvent;
+			GameInstanceDeletedEvent -= instance.OnGameInstanceDeletedEvent;
+			OnGameInstanceEvent(instance, new GameInstanceEventArgs(reason));
+		}
+		#endregion
+
+		#region Búsqueda de Instancias
 		/// <summary>
 		/// Determina si existe una instancia de tipo <typeparamref name="InstanceType"/> en la escena actual
 		/// </summary>
 		/// <typeparam name="InstanceType">Tipo de instancia a comprobar</typeparam>
 		/// <returns>Si existe al menos una instancia <see cref="GameObject"/> bajo el criterio</returns>
 		public static bool InstanceExists<InstanceType>() where InstanceType : GameObject {
-			return instances.OfType<InstanceType>().Any();
+			return instances
+				.OfType<InstanceType>()
+				.Any();
 		}
 
 		/// <summary>
@@ -317,8 +365,8 @@ namespace GameCore {
 		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio</returns>
 		public static InstanceType FindInstance<InstanceType>(GameObject self) where InstanceType : GameObject {
 			return instances
-				.FindAll(instance => !ReferenceEquals(self, instance))
 				.OfType<InstanceType>()
+				.Where(instance => !ReferenceEquals(self, instance))
 				.FirstOrDefault();
 		}
 		/// <summary>
@@ -353,8 +401,8 @@ namespace GameCore {
 		/// <returns>Una <see cref="List{InstanceType}"/> conteniendo los resultados de la búsqueda</returns>
 		public static List<InstanceType> FindInstances<InstanceType>(GameObject self) where InstanceType : GameObject {
 			return instances
-				.FindAll(instance => !ReferenceEquals(self, instance))
 				.OfType<InstanceType>()
+				.Where(instance => !ReferenceEquals(self, instance))
 				.ToList();
 		}
 		/// <summary>
@@ -370,14 +418,17 @@ namespace GameCore {
 				.Where(predicate)
 				.ToList();
 		}
+		#endregion
 
+		#region Comprobación de Colisiones
 		/// <summary>
 		/// Determina si la instancia <see cref="GameObject"/> especificada colisiona con alguna otra instancia del juego
 		/// </summary>
 		/// <param name="self">Instancia desde la cual detectar colisiones</param>
 		/// <returns><see langword="true"/> si se detectan una o más colisiones</returns>
 		public static bool Collides(GameObject self) {
-			return instances.Any(instance => !ReferenceEquals(self, instance) && self.CollidesWith(instance));
+			bool IsNotSelfAndCollidesWith(GameObject instance) => !ReferenceEquals(self, instance) && self.CollidesWith(instance);
+			return instances.Any(IsNotSelfAndCollidesWith);
 		}
 
 		/// <summary>
@@ -387,7 +438,8 @@ namespace GameCore {
 		/// <param name="self">Instancia desde la cual detectar colisiones</param>
 		/// <returns><see langword="true"/> si se detectan una o más colisiones</returns>
 		public static bool CollidesWith<InstanceType>(GameObject self) where InstanceType: GameObject {
-			return instances.Any(instance => instance is InstanceType && !ReferenceEquals(self, instance) && self.CollidesWith(instance));
+			bool IsDesiredTypeAndNotSelfAndCollidesWith(GameObject instance) => instance is InstanceType && !ReferenceEquals(self, instance) && self.CollidesWith(instance);
+			return instances.Any(IsDesiredTypeAndNotSelfAndCollidesWith);
 		}
 
 		/// <summary>
@@ -396,7 +448,8 @@ namespace GameCore {
 		/// <param name="self">Instancia desde la cual detectar colisiones</param>
 		/// <returns>Una <see cref="List{GameObject}"/> de las colisiones detectadas</returns>
 		public static List<GameObject> Collisions(GameObject self) {
-			return instances.FindAll(instance => !ReferenceEquals(self, instance) && self.CollidesWith(instance));
+			bool IsNotSelfAndCollidesWith(GameObject instance) => !ReferenceEquals(self, instance) && self.CollidesWith(instance);
+			return instances.FindAll(IsNotSelfAndCollidesWith);
 		}
 
 		/// <summary>
@@ -406,25 +459,15 @@ namespace GameCore {
 		/// <param name="self">Instancia desde la cual detectar colisiones</param>
 		/// <returns>Una <see cref="List{T}"/> cuyo tipo genérico es <typeparamref name="InstanceType"/> de las colisiones detectadas</returns>
 		public static List<InstanceType> Collisions<InstanceType>(GameObject self) where InstanceType: GameObject {
+			bool IsNotSelfAndCollidesWith(InstanceType instance) => !ReferenceEquals(self, instance) && self.CollidesWith(instance);
+
 			return instances
-				.FindAll(instance => !ReferenceEquals(self, instance) && self.CollidesWith(instance))
 				.OfType<InstanceType>()
+				.Where(IsNotSelfAndCollidesWith)
 				.ToList();
 		}
-
-		/// <summary>
-		/// Aplica las actualizaciones programadas en el tick actual a la lista de instancias <see cref="GameObject"/> de la escena, efectivamente agregando y eliminando las instancias designadas para ello
-		/// </summary>
-		/// <remarks>Cuando termina la operación, se limpian las listas de adiciones y eliminaciones pendientes</remarks>
-		private static void PerformInstanceChanges() {
-			foreach(GameObject addition in pendingAdditions)
-				instances.Add(addition);
-			foreach(GameObject removal in pendingRemovals)
-				instances.Remove(removal);
-
-			pendingAdditions.Clear();
-			pendingRemovals.Clear();
-		}
+		#endregion
+		#endregion
 	}
 
 	/// <summary>
@@ -432,16 +475,68 @@ namespace GameCore {
 	/// </summary>
 	public class Clock {
 		private static double tps = 60;
+
+		#region Conversiones básicas
 		/// <summary>
 		/// Ticks por segundo del juego.
 		/// Entre 1 y 1000, por defecto 60
 		/// </summary>
 		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
 		public static double TicksPerSecond { get => tps; set => tps = MathUtils.Clamp(value, 1, 1000); }
+
 		/// <summary>
 		/// Duración de un tick en milisegundos
 		/// </summary>
 		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
 		public static double BaseTick { get => 1000 / TicksPerSecond; }
+
+		/// <summary>
+		/// Duración de un segundo en ticks
+		/// </summary>
+		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
+		public static double Second { get => 1000 / BaseTick; }
+		#endregion
+
+		#region Traducción de Tiempo a Ticks
+		/// <summary>
+		/// Traduce los segundos ingresados a ticks del juego
+		/// </summary>
+		/// <remarks>No tiene en cuenta las variaciones de tiempo que puedan ocurrir por tick, así que es solo un estimado</remarks>
+		/// <param name="s">Segundos</param>
+		/// <returns>La cantidad de ticks que ocurren en el periodo especificado</returns>
+		public static long Seconds(double s) {
+			return Convert.ToInt64(s * Second);
+		}
+		/// <summary>
+		/// Traduce los minutos ingresados a ticks del juego
+		/// </summary>
+		/// <remarks>No tiene en cuenta las variaciones de tiempo que puedan ocurrir por tick, así que es solo un estimado</remarks>
+		/// <param name="s">Segundos</param>
+		/// <returns>La cantidad de ticks que ocurren en el periodo especificado</returns>
+		public static long Minutes(double m) {
+			return Convert.ToInt64(m * 60 * Second);
+		}
+		/// <summary>
+		/// Traduce las horas ingresadas a ticks del juego
+		/// </summary>
+		/// <remarks>No tiene en cuenta las variaciones de tiempo que puedan ocurrir por tick, así que es solo un estimado</remarks>
+		/// <param name="s">Segundos</param>
+		/// <returns>La cantidad de ticks que ocurren en el periodo especificado</returns>
+		public static long Hours(double m) {
+			return Convert.ToInt64(m * 3600 * Second);
+		}
+		#endregion
+
+		#region Traducción de Ticks a Tiempo
+		public static double ToSeconds(long ticks) {
+			return ticks / TicksPerSecond;
+		}
+		public static double ToMinutes(long ticks) {
+			return ticks / (TicksPerSecond * 60);
+		}
+		public static double ToHours(long ticks) {
+			return ticks / (TicksPerSecond * 3600);
+		}
+		#endregion
 	}
 }
