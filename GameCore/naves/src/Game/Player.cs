@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Globalization;
 using GameCore;
+using System.Threading.Tasks;
 
 namespace naves {
 	class Player: GameObject {
+		private readonly PlayerBulletPool bulletPool;
 		private long score;
 		private int lives;
 		private int bombs;
@@ -14,6 +16,18 @@ namespace naves {
 		private int iTicks;
 		private bool focused;
 		private Display focusedDisplay;
+
+		//PENDIENTE: Extraer a clase Tutorial
+		private readonly List<InputTutorial> availableTutorials;
+		private enum InputTutorial {
+			MoveUp,
+			MoveDown,
+			MoveLeft,
+			MoveRight,
+			Stop,
+			Bomb,
+			Focus,
+		}
 
 		public Player(Vec2 pos) : base(pos) {
 			RenderComponent renderComponent = new RenderComponent(
@@ -43,10 +57,21 @@ namespace naves {
 			this.score = 0;
 			this.lives = 3;
 			this.bombs = 3;
-			this.power = 1;
+			this.power = 100;
 			this.value = 1000;
 			this.graze = 0;
-			this.iTicks = (int)Game.Seconds(1);
+			this.iTicks = (int)Clock.Seconds(1);
+			this.bulletPool = new PlayerBulletPool();
+
+			//PENDIENTE: Extraer a clase Tutorial
+			this.availableTutorials = new List<InputTutorial>();
+			this.availableTutorials.Add(InputTutorial.MoveUp);
+			this.availableTutorials.Add(InputTutorial.MoveDown);
+			this.availableTutorials.Add(InputTutorial.MoveLeft);
+			this.availableTutorials.Add(InputTutorial.MoveRight);
+			this.availableTutorials.Add(InputTutorial.Stop);
+			this.availableTutorials.Add(InputTutorial.Bomb);
+			this.availableTutorials.Add(InputTutorial.Focus);
 
 			this.SubscribeTo(Game.EventType.General);
 			this.SubscribeTo(Game.EventType.InstanceDeleted);
@@ -59,15 +84,16 @@ namespace naves {
 		public long Value { get => this.value * 10; }
 		public int Graze { get => this.graze; }
 
-		protected override void MainUpdate() {
+		protected override void MainUpdate(double deltaTime) {
+			this.power += (Game.CurrentButton.Button == GameButton.HKey ? 1 : 0) - (Game.CurrentButton.Button == GameButton.JKey ? 1 : 0);
+
+			this.ShowTutorials();
 			this.ClampPosition();
 			this.ProcessShoot();
 			this.CheckItemPick();
 			this.ProcessITicks();
 			this.CheckDamage();
 			this.CheckInputs();
-
-			CGUI.DrawText(new Vec2(CGUI.GameCenter, CGUI.GameMiddle), "Porno", ConsoleColor.DarkYellow);
 		}
 
 		public override void OnGameEvent(GameEventArgs e) {
@@ -147,30 +173,55 @@ namespace naves {
 			Console.Write(resBar);
 		}
 
+		//PENDIENTE: Extraer a clase Tutorial
+		private void ShowTutorials() {
+			if(availableTutorials.Count == 0)
+				return;
+
+			Vec2 center = new Vec2(CGUI.GameCenter, CGUI.GameMiddle);
+			string tutorialTitle = "<{~ Controles básicos ~}>";
+
+			CGUI.DrawText(center.Offset(-tutorialTitle.Length / 2, -2), tutorialTitle, ConsoleColor.DarkYellow);
+
+			if(availableTutorials.Contains(InputTutorial.MoveUp))
+				CGUI.DrawText(center.Offset(5, 0), "↑");
+			if(availableTutorials.Contains(InputTutorial.MoveLeft))
+				CGUI.DrawText(center.Offset(3, 1), "←");
+			if(availableTutorials.Contains(InputTutorial.MoveDown))
+				CGUI.DrawText(center.Offset(5, 1), "↓");
+			if(availableTutorials.Contains(InputTutorial.MoveRight))
+				CGUI.DrawText(center.Offset(7, 1), "→");
+			if(availableTutorials.Contains(InputTutorial.Stop))
+				CGUI.DrawText(center.Offset(-7, 1), "Z", ConsoleColor.Red);
+			if(availableTutorials.Contains(InputTutorial.Bomb))
+				CGUI.DrawText(center.Offset(-5, 1), "X", ConsoleColor.Green);
+			if(availableTutorials.Contains(InputTutorial.Focus))
+				CGUI.DrawText(center.Offset(-3, 1), "C", ConsoleColor.Blue);
+		}
+
 		private void ClampPosition() {
 			this.pos.Clamp(CGUI.GameTopLeft, CGUI.GameBottomRight);
 		}
 
 		private void ProcessShoot() {
-			if(this.iTicks > Game.Seconds(5 - 1))
+			if(this.iTicks > Clock.Seconds(5 - 1))
 				return;
 
-			if(Game.Ticks % 4 == 0) {
-				PlayerBullet bullet;
+			if((Game.Ticks % 4) == 0) {
 				double angle;
-				int actualPower = (int)Math.Floor(this.power);
-				int hOffset = actualPower - 1;
-				double wideFactor = Math.PI / 32 * actualPower;
+				int pw = (int)Math.Floor(this.power);
+				Vec2 pos = this.pos.Rounded;
+				int hOffset = pw - 1;
+				double wideFactor = Math.PI * (pw - Math.PI / 2) / (2 * (pw + 1));
 
-				for(int shoot = 0; shoot < actualPower; shoot++) {
+				for(int shoot = 0; shoot < pw; shoot++) {
 					angle = -Math.PI / 2;
-					if(actualPower > 1) {
-						angle -= wideFactor * 0.5 * (actualPower - 1);
-						angle += wideFactor * shoot;
+					if(pw > 1) {
+						angle -= wideFactor * 0.5;
+						angle += wideFactor * shoot / (pw - 1);
 					}
 
-					bullet = new PlayerBullet(this.pos.Offset(-hOffset / 2.0 + shoot, -2), Vec2.FromAngle(angle));
-					Game.AddInstance(bullet, Game.InstanceEventReason.Shoot);
+					bulletPool.EnableShoot(pos.Offset(-hOffset / 2.0 + shoot, -2), Vec2.FromAngle(angle)/*, Game.InstanceEventReason.Shoot*/);
 				}
 			}
 		}
@@ -202,7 +253,7 @@ namespace naves {
 			this.iTicks -= 1;
 			this.display.Visible = (iTicks / 2 % 2) == 0;
 
-			if(this.iTicks > Game.Seconds(5 - 1.5) && this.iTicks % 20 == 0)
+			if(this.iTicks > Clock.Seconds(5 - 1.5) && this.iTicks % 20 == 0)
 				this.pos.Y -= 1;
 		}
 
@@ -220,7 +271,7 @@ namespace naves {
 			this.vel = Vec2.Zero;
 			this.SetFocused(false);
 
-			this.iTicks = Convert.ToInt32(Game.Seconds(5));
+			this.iTicks = Convert.ToInt32(Clock.Seconds(5));
 			if(this.lives <= 0)
 				Game.Ended = true;
 		}
@@ -235,18 +286,18 @@ namespace naves {
 		}
 
 		private void CheckInputs() {
-			if(iTicks > Game.Seconds(5 - 1.5))
+			if(iTicks > Clock.Seconds(5 - 1.5))
 				return;
 
 			int multikeyTicks = 6;
 
-			GameButton pressedKey = Game.CurrentKey.Button;
-			long pressedTick = Game.CurrentKey.Tick;
+			GameButton pressedKey = Game.CurrentButton.Button;
+			long pressedTick = Game.CurrentButton.Tick;
 
 			if(pressedKey == 0)
 				return;
 
-			long lastTick = Game.PreviousKey.Tick;
+			long lastTick = Game.PreviousButton.Tick;
 			bool isMultiKey = (pressedTick - lastTick) < multikeyTicks;
 			Vec2 dir = Vec2.Zero;
 			Vec2 velFactor = new Vec2(1, 0.5);
@@ -254,13 +305,33 @@ namespace naves {
 				velFactor *= 0.5;
 
 			switch(pressedKey) {
-			case GameButton.Up:	dir = Vec2.Up;		break;
-			case GameButton.Down:  dir = Vec2.Down;	  break;
-			case GameButton.Left:  dir = Vec2.Left;	  break;
-			case GameButton.Right: dir = Vec2.Right;	 break;
-			case GameButton.ZKey:  this.vel = Vec2.Zero; break;
+			case GameButton.Up:
+				availableTutorials.Remove(InputTutorial.MoveUp);
+				dir = Vec2.Up;
+				break;
+
+			case GameButton.Down:
+				availableTutorials.Remove(InputTutorial.MoveDown);
+				dir = Vec2.Down;
+				break;
+
+			case GameButton.Left:
+				availableTutorials.Remove(InputTutorial.MoveLeft);
+				dir = Vec2.Left;
+				break;
+
+			case GameButton.Right:
+				availableTutorials.Remove(InputTutorial.MoveRight);
+				dir = Vec2.Right;
+				break;
+
+			case GameButton.ZKey:
+				availableTutorials.Remove(InputTutorial.Stop);
+				this.vel = Vec2.Zero;
+				break;
 
 			case GameButton.XKey:
+				availableTutorials.Remove(InputTutorial.Bomb);
 				if(this.bombs < 0) break;
 
 				this.bombs -= 1;
@@ -268,6 +339,7 @@ namespace naves {
 				break;
 
 			case GameButton.CKey:
+				availableTutorials.Remove(InputTutorial.Focus);
 				this.ToggleFocused();
 				break;
 
@@ -318,20 +390,57 @@ namespace naves {
 			this.collider = new DotCollider(this);
 		}
 
-		protected override void MainUpdate() {
+		protected override void MainUpdate(double deltaTime) {
 			if(this.pos.Y < 0) {
-				Game.DeleteInstance(this);
+				Game.DisableInstance(this);
 				return;
 			}
 
 			List<Enemy> collidedEnemies = Game.Collisions<Enemy>(this);
+
 			if(collidedEnemies.Count == 0)
 				return;
 
-			foreach(Enemy collidedEnemy in collidedEnemies)
-				collidedEnemy.Damage(1);
+			Parallel.ForEach(collidedEnemies, collidedEnemy => collidedEnemy.Damage(1));
 
-			Game.DeleteInstance(this);
+			Game.DisableInstance(this);
+		}
+	}
+	class PlayerBulletPool {
+		private readonly List<PlayerBullet> bullets;
+		private readonly int bulletLimit;
+		private int bulletIndex;
+
+		public PlayerBulletPool(int bulletLimit = 500) {
+			this.bulletIndex = 0;
+			this.bulletLimit = bulletLimit;
+			this.bullets = new List<PlayerBullet>();
+
+			Vec2 zeroVec = Vec2.Zero;
+			for(int i = 0; i < bulletLimit; i++) {
+				PlayerBullet bullet = new PlayerBullet(zeroVec, zeroVec);
+				this.bullets.Add(bullet);
+				Game.AddInstance(bullet);
+				Game.DisableInstance(bullet);
+			}
+				
+		}
+
+		private PlayerBullet CurrentBullet {
+			get {
+				if(this.bulletIndex < this.bulletLimit)
+					return this.bullets[this.bulletIndex++];
+
+				this.bulletIndex = 1;
+				return this.bullets[0];
+			}
+		}
+
+		public void EnableShoot(Vec2 pos, Vec2 vel) {
+			PlayerBullet currentBullet = this.CurrentBullet;
+			currentBullet.Pos = pos;
+			currentBullet.Vel = vel;
+			Game.EnableInstance(currentBullet);
 		}
 	}
 }
