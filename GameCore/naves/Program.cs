@@ -7,8 +7,10 @@ namespace naves {
 	class Program {
 		static void Main(string[] _) {
 			Game.Target = GameTarget.Console;
+			Game.Debug = true;
 
 			CGUI.PrepareConsole("Juego de naves");
+			CGUI.GameArea = new Rect(1, 1, 59, 23);
 			CGUI.DrawBasicUI();
 
 			Player player = new Player(new Vec2(CGUI.GameCenter, CGUI.GameBottom - 6));
