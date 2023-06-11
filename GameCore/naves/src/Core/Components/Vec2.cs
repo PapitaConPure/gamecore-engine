@@ -5,6 +5,7 @@ namespace GameCore {
 	/// Representa un vector de 2 dimensiones
 	/// </summary>
 	public class Vec2 {
+		#region Atributos básicos
 		/// <summary>
 		/// Componente horizontal del <see cref="Vec2"/>
 		/// </summary>
@@ -13,18 +14,25 @@ namespace GameCore {
 		/// Componente vertical del <see cref="Vec2"/>
 		/// </summary>
 		private double y;
+		#endregion
 
+		#region Operadores
 		public static Vec2 operator +(Vec2 v) => v;
 		public static Vec2 operator -(Vec2 v) => new Vec2(-v.X, -v.Y);
+		public static Vec2 operator +(Vec2 v, double n) => v.Offset(n, n);
+		public static Vec2 operator -(Vec2 v, double n) => v.Offset(-n, -n);
 		public static Vec2 operator +(Vec2 a, Vec2 b) => a.Offset(b);
-		public static Vec2 operator -(Vec2 a, Vec2 b) => a.Offset(-b.X, -b.Y);
+		public static Vec2 operator -(Vec2 a, Vec2 b) => a.Offset(-b);
+		public static Vec2 operator *(double n, Vec2 v) => new Vec2(v.X * n, v.Y * n);
 		public static Vec2 operator *(Vec2 v, double n) => new Vec2(v.X * n, v.Y * n);
 		public static Vec2 operator /(Vec2 v, double n) => new Vec2(v.X / n, v.Y / n);
 		public static Vec2 operator *(Vec2 a, Vec2 b) => new Vec2(a.X * b.X, a.Y * b.Y);
 		public static Vec2 operator /(Vec2 a, Vec2 b) => new Vec2(a.X / b.X, a.Y / b.Y);
 		public static bool operator ==(Vec2 a, Vec2 b) => a.Equals(b);
 		public static bool operator !=(Vec2 a, Vec2 b) => a.X != b.X || a.Y != b.Y;
+		#endregion
 
+		#region Constructores, inicializadores y prefabricados
 		/// <summary>
 		/// <see cref="Vec2"/> con sus componentes en 0
 		/// </summary>
@@ -90,7 +98,9 @@ namespace GameCore {
 			this.x = vec2.X;
 			this.y = vec2.Y;
 		}
+		#endregion
 
+		#region Propiedades básicas
 		/// <summary>
 		/// Componente horizontal del <see cref="Vec2"/>
 		/// </summary>
@@ -99,6 +109,7 @@ namespace GameCore {
 		/// Componente vertical del <see cref="Vec2"/>
 		/// </summary>
 		public double Y { get => this.y; set => this.y = value; }
+
 		/// <summary>
 		/// Componente X (horizontal) del <see cref="Vec2"/> redondeado al entero más cercano
 		/// </summary>
@@ -107,6 +118,9 @@ namespace GameCore {
 		/// Componente Y (vertical) del <see cref="Vec2"/> redondeado al entero más cercano
 		/// </summary>
 		public int IY => (int)Math.Round(this.y);
+		#endregion
+
+		#region Propiedades de vectores derivados
 		/// <summary>
 		/// Nueva copia idéntica del <see cref="Vec2"/>
 		/// </summary>
@@ -128,23 +142,30 @@ namespace GameCore {
 				double magnitude = this.Magnitude;
 				if(magnitude < 0.001)
 					return Vec2.Zero;
-				return new Vec2(Convert.ToInt32(this.x / magnitude), Convert.ToInt32(this.y / magnitude));
+				return new Vec2(this.x / magnitude, this.y / magnitude);
 			}
 		}
+		#endregion
+
+		#region Propiedades de cálculos relacionados
 		/// <summary>
 		/// Magnitud (o largo) del vector
 		/// </summary>
 		public double Magnitude => Math.Sqrt(this.x * this.x + this.y * this.y);
+
 		/// <summary>
 		/// Magnitud (o largo) del vector
 		/// </summary>
 		/// <seealso cref="Magnitude"/>
 		public double Length => this.Magnitude;
+
 		/// <summary>
 		/// Ángulo (en radianes) del vector, desde el origen (0, 0) en relación al vector unitario (1, 0) hasta la posición que apunta
 		/// </summary>
 		public double Angle => Math.Acos(this.x);
+		#endregion
 
+		#region Métodos de cálculos relacionados
 		/// <summary>
 		/// Calcula el desplazamiento de este <see cref="Vec2"/> por la cantidad especificada para cada componente
 		/// </summary>
@@ -160,8 +181,7 @@ namespace GameCore {
 		/// Calcula el desplazamiento de este <see cref="Vec2"/> según el otro <see cref="Vec2"/> especificado
 		/// </summary>
 		/// <remarks>Este método no modifica el <see cref="Vec2"/> original</remarks>
-		/// <param name="x">Desplazamiento horizontal</param>
-		/// <param name="y">Desplazamiento vertical</param>
+		/// <param name="offset">Vector de desplazamiento</param>
 		/// <returns>El <see cref="Vec2"/> resultante del desplazamiento</returns>
 		/// <seealso cref="Offset(double, double)"/>
 		public Vec2 Offset(Vec2 offset) {
@@ -219,18 +239,6 @@ namespace GameCore {
 		/// <returns>Ángulo calculado (en radianes)</returns>
 		public double AngleTowards(Vec2 other) {
 			return Math.Acos(this.Normalized.Dot(other.Normalized));
-		}
-
-		/// <summary>
-		/// Gira el <see cref="Vec2"/> según el ángulo especificado
-		/// </summary>
-		/// <remarks>Este método modifica el <see cref="Vec2"/> original</remarks>
-		/// <param name="angle">Ángulo (en radianes)</param>
-		public void Rotate(double angle) {
-			double sinAngle = Math.Sin(angle);
-			double cosAngle = Math.Cos(angle);
-			this.x = x * cosAngle - y * sinAngle;
-			this.y = x * sinAngle + y * cosAngle;
 		}
 
 		/// <summary>
@@ -315,6 +323,20 @@ namespace GameCore {
 
 			return this.InsideRect(x1, y1, x2, y2);
 		}
+		#endregion
+
+		#region Métodos de manipulación de vectores
+		/// <summary>
+		/// Gira el <see cref="Vec2"/> según el ángulo especificado
+		/// </summary>
+		/// <remarks>Este método modifica el <see cref="Vec2"/> original</remarks>
+		/// <param name="angle">Ángulo (en radianes)</param>
+		public void Rotate(double angle) {
+			double sinAngle = Math.Sin(angle);
+			double cosAngle = Math.Cos(angle);
+			this.x = x * cosAngle - y * sinAngle;
+			this.y = x * sinAngle + y * cosAngle;
+		}
 
 		/// <summary>
 		/// Restringe este vector entre los valores especificados para cada componente
@@ -354,13 +376,16 @@ namespace GameCore {
 
 			this.Clamp(x1, y1, x2, y2);
 		}
+		#endregion
 
+		#region Métodos generales de clase
 		/// <summary>
 		/// Devuelve una cadena que muestra los componentes de este <see cref="Vec2"/> como "(X, Y)"
 		/// </summary>
 		/// <returns>Una cadena que representa el <see cref="Vec2"/> actual</returns>
-		public override string ToString() => $"({this.x}, {this.y})";
+		public override string ToString() => $"({this.x:F2}, {this.y:F2})";
 		public override bool Equals(object obj) => base.Equals(obj);
 		public override int GetHashCode() => base.GetHashCode();
+		#endregion
 	}
 }
