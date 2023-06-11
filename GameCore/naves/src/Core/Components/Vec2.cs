@@ -4,7 +4,7 @@ namespace GameCore {
 	/// <summary>
 	/// Representa un vector de 2 dimensiones
 	/// </summary>
-	public class Vec2 {
+	public struct Vec2 {
 		#region Atributos básicos
 		/// <summary>
 		/// Componente horizontal del <see cref="Vec2"/>
@@ -36,7 +36,7 @@ namespace GameCore {
 		/// <summary>
 		/// <see cref="Vec2"/> con sus componentes en 0
 		/// </summary>
-		public static Vec2 Zero => new Vec2(0, 0);
+		public static Vec2 Zero => new Vec2();
 		/// <summary>
 		/// <see cref="Vec2"/> con sus componentes en 1
 		/// </summary>
@@ -121,10 +121,6 @@ namespace GameCore {
 		#endregion
 
 		#region Propiedades de vectores derivados
-		/// <summary>
-		/// Nueva copia idéntica del <see cref="Vec2"/>
-		/// </summary>
-		public Vec2 Copy => new Vec2(this);
 		/// <summary>
 		/// Versión del <see cref="Vec2"/> con sus componentes redondeados al entero más cercano
 		/// </summary>

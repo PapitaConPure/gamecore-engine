@@ -74,7 +74,7 @@ namespace GameCore {
 		private readonly Vec2 vel;
 		public VelStep(long tick, Vec2 vel) : base(tick) => this.vel = vel;
 		public override SequenceStep Copy => new VelStep(this.tick, this.vel);
-		public override void Follow(Sequence parent, GameObject instance) => instance.Vel = this.vel.Copy;
+		public override void Follow(Sequence parent, GameObject instance) => instance.Vel = this.vel;
 	}
 	public class SpawnStep: SequenceStep {
 		private readonly GameObject shoot;

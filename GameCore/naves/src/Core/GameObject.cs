@@ -9,8 +9,8 @@ namespace GameCore {
 		protected byte layer;
 
 		public GameObject() => this.Initialize(Vec2.Zero, Vec2.Zero);
-		public GameObject(Vec2 pos) => this.Initialize(pos.Copy, Vec2.Zero);
-		public GameObject(Vec2 pos, Vec2 vel) => this.Initialize(pos.Copy, vel.Copy);
+		public GameObject(Vec2 pos) => this.Initialize(pos, Vec2.Zero);
+		public GameObject(Vec2 pos, Vec2 vel) => this.Initialize(pos, vel);
 
 		private void Initialize(Vec2 pos, Vec2 vel) {
 			this.pos = pos;
@@ -19,8 +19,8 @@ namespace GameCore {
 			this.layer = 127;
 		}
 
-		public Vec2 Pos { get => this.pos; set => this.pos = value.Copy; }
-		public Vec2 Vel { get => this.vel; set => this.vel = value.Copy; }
+		public Vec2 Pos { get => this.pos; set => this.pos = value; }
+		public Vec2 Vel { get => this.vel; set => this.vel = value; }
 		public Collider Collider { get => this.collider; }
 
 		public void Draw() {

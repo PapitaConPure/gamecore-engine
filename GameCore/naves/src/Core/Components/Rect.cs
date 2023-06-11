@@ -8,7 +8,7 @@ namespace GameCore {
 	/// <summary>
 	/// Representa un rectángulo
 	/// </summary>
-	public class Rect {
+	public struct Rect {
 		#region Atributos básicos
 		/// <summary>
 		/// <see cref="Vec2"/> correspondiente a la esquina superior izquierda
@@ -56,8 +56,8 @@ namespace GameCore {
 		/// <param name="v1">Primer <see cref="Vec2"/> del rectángulo</param>
 		/// <param name="v2"><see cref="Vec2"/> opuesto del rectángulo</param>
 		public Rect(Vec2 v1, Vec2 v2) {
-			this.v1 = v1.Copy;
-			this.v2 = v2.Copy;
+			this.v1 = v1;
+			this.v2 = v2;
 
 			this.OrderVecs();
 		}
@@ -66,16 +66,16 @@ namespace GameCore {
 		/// </summary>
 		/// <param name="rect"><see cref="Rect"/> modelo</param>
 		public Rect(Rect rect) {
-			this.v1 = rect.V1.Copy;
-			this.v2 = rect.V2.Copy;
+			this.v1 = rect.V1;
+			this.v2 = rect.V2;
 		}
 		#endregion
 
 		#region Propiedades básicas
 		/// <inheritdoc cref="v1"/>
-		public Vec2 V1 { get => this.v1; set => this.v1 = value.Copy; }
+		public Vec2 V1 { get => this.v1; set => this.v1 = value; }
 		/// <inheritdoc cref="v2"/>
-		public Vec2 V2 { get => this.v2; set => this.v2 = value.Copy; }
+		public Vec2 V2 { get => this.v2; set => this.v2 = value; }
 		/// <summary>
 		/// Primer vértice del <see cref="Rect"/> con sus componentes redondeados al entero más cercano
 		/// </summary>
@@ -111,10 +111,6 @@ namespace GameCore {
 		#endregion
 
 		#region Propiedades de rectángulos derivados
-		/// <summary>
-		/// Nueva copia idéntica del <see cref="Rect"/>
-		/// </summary>
-		public Rect Copy => new Rect(this);
 		/// <summary>
 		/// Versión del <see cref="Rect"/> con su primer vértice y vértice opuesto redondeados al entero más cercano
 		/// </summary>
@@ -242,11 +238,11 @@ namespace GameCore {
 		/// </summary>
 		/// <param name="other"></param>
 		/// <returns></returns>
-		public Rect Union(Rect other) {
+		public Rect? Union(Rect other) {
 			if(!this.Intersects(other))
 				return null;
 
-			Rect r = this.Copy;
+			Rect r = new Rect(this.V1, this.V2);
 			r.Clamp(other);
 			return r;
 		}

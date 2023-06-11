@@ -118,7 +118,7 @@ namespace GameCore {
 		/// <param name="v1">Vector de la primera esquina del rectángulo</param>
 		/// <param name="v2">Vector de la esquina opuesta del rectángulo</param>
 		public RectCollider(GameObject owner, Rect r) : base(owner) {
-			this.r = r.Copy;
+			this.r = r;
 		}
 
 		/// <summary>
