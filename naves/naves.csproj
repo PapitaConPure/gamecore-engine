@@ -70,6 +70,7 @@
     <Compile Include="src\Core\Components\Sequence.cs" />
     <Compile Include="src\Core\Display\CGUI.cs" />
     <Compile Include="src\Core\Display\RenderComponent.cs" />
+    <Compile Include="src\Core\TreeNode.cs" />
     <Compile Include="src\Game\Enemy.cs" />
     <Compile Include="src\Game\Player.cs" />
     <Compile Include="Program.cs" />
