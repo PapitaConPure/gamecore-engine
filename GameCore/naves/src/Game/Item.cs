@@ -22,7 +22,7 @@ namespace naves {
 		public int Amount => this.content.Amount;
 		public ContentType ItemType => this.content.Type;
 
-		protected override void MainUpdate() {
+		protected override void MainUpdate(double deltaTime) {
 			if(this.Pos.Y > CGUI.GameBottom) {
 				Game.DeleteInstance(this);
 				return;

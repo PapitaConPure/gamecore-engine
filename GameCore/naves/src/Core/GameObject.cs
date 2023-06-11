@@ -1,4 +1,6 @@
-﻿namespace GameCore {
+﻿using System.Collections.Generic;
+
+namespace GameCore {
 	public abstract class GameObject {
 		protected Vec2 pos;
 		protected Vec2 vel;
@@ -17,8 +19,8 @@
 			this.layer = 127;
 		}
 
-		public Vec2 Pos { get => this.pos; set => this.pos = value; }
-		public Vec2 Vel { get => this.vel; set => this.vel = value; }
+		public Vec2 Pos { get => this.pos; set => this.pos = value.Copy; }
+		public Vec2 Vel { get => this.vel; set => this.vel = value.Copy; }
 		public Collider Collider { get => this.collider; }
 
 		public void Draw() {
@@ -30,9 +32,9 @@
 			return this.collider.Intersect(instance.Collider);
 		}
 
-		public void Update() {
-			this.PositionUpdate();
-			this.MainUpdate();
+		public void Update(double deltaTime) {
+			this.PositionUpdate(deltaTime);
+			this.MainUpdate(deltaTime);
 		}
 
 		/// <summary>
@@ -58,13 +60,10 @@
 		/// <param name="e">Argumentos del evento disparado</param>
 		public virtual void OnGameInstanceDeletedEvent(GameObject sender, GameInstanceDeletedEventArgs e) {}
 
-		protected virtual void PositionUpdate() {
+		protected virtual void PositionUpdate(double deltaTime) {
 			this.pos += this.vel;
-			//this.pos.Clamp(GUI.GameTopLeft, GUI.GameBottomRight);
 		}
 
-		protected virtual void MainUpdate() {
-			//No hace nada por defecto
-		}
+		protected virtual void MainUpdate(double deltaTime) {}
 	}
 }

@@ -6,7 +6,7 @@ namespace naves {
 		private int hp;
 		private readonly int powerItems;
 		private readonly int pointItems;
-		private Sequence sequence; 
+		private readonly Sequence sequence; 
 
 		public Enemy(Vec2 pos, Sequence sequence, ISpawnType enemyType) : base(pos) {
 			this.sequence = sequence.Copy;
@@ -31,7 +31,7 @@ namespace naves {
 			this.BurstItems(new PointItemContent(this.pointItems));
 		}
 
-		protected override void MainUpdate() {
+		protected override void MainUpdate(double deltaTime) {
 			this.sequence.Follow(this);
 		}
 
