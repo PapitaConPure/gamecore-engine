@@ -18,19 +18,12 @@ namespace GameCore {
 			if(!pos.InsideRect(CGUI.GameTopLeft, CGUI.GameBottomRight))
 				return;
 
-			ConsoleColor lastColor = Console.ForegroundColor;
-			//int lastLeft = Console.CursorLeft;
-			//int lastTop = Console.CursorTop;
-
 			Console.ForegroundColor = this.color;
 			Console.CursorLeft = pos.IX;
 			Console.CursorTop = pos.IY;
 
 			Console.Write(this.symbol);
-
-			Console.ForegroundColor = lastColor;
-			//Console.CursorLeft = lastLeft;
-			//Console.CursorTop = lastTop;
+			CGUI.AddLineToCleanUp(pos.IY);
 		}
 	}
 
@@ -77,6 +70,7 @@ namespace GameCore {
 				Console.CursorTop = y;
 				Console.CursorLeft = minX;
 				Console.Write(lineOutput);
+				CGUI.AddLineToCleanUp(y);
 			}
 		}
 	}
@@ -128,6 +122,8 @@ namespace GameCore {
 
 				if(outputBuffer.Length > 0)
 					Console.Write(outputBuffer);
+
+				CGUI.AddLineToCleanUp(y);
 			}
 		}
 	}
