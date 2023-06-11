@@ -4,19 +4,93 @@ using System.Collections.Generic;
 
 //PENDIENTE: volver más general el dibujado de interfaz
 namespace GameCore {
+	public struct ConsoleWriteRequest {
+		private readonly Vec2 pos;
+		private readonly string text;
+		private readonly ConsoleColor fgColor;
+		private readonly ConsoleColor bgColor;
+
+		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = fgColor;
+			this.bgColor = bgColor;
+		}
+		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = fgColor;
+			this.bgColor = ConsoleColor.Black;
+		}
+		public ConsoleWriteRequest(Vec2 pos, string text) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = ConsoleColor.White;
+			this.bgColor = ConsoleColor.Black;
+		}
+
+		public void Draw() {
+			Console.SetCursorPosition(pos.IX, pos.IY);
+			Console.ForegroundColor = fgColor;
+			Console.BackgroundColor = bgColor;
+			Console.Write(text);
+			CGUI.AddLineToCleanUp(pos.IY);
+		}
+	}
+
 	/// <summary>
 	/// Representa una interfaz gráfica de consola
 	/// </summary>
 	public static class CGUI {
-		static public int UIRight { get => 79; }
-		static public int GameLeft { get => 1; }
-		static public int GameCenter { get => Convert.ToInt32(Math.Ceiling((GameLeft + GameRight) / 2.0)); }
-		static public int GameRight { get => 59; }
-		static public int GameTop { get => 1; }
-		static public int GameMiddle { get => Convert.ToInt32(Math.Ceiling((GameTop + GameBottom) / 2.0)); }
-		static public int GameBottom { get => 23; }
-		static public Vec2 GameTopLeft { get => new Vec2(GameLeft, GameTop); }
-		static public Vec2 GameBottomRight { get => new Vec2(GameRight, GameBottom); }
+		private static readonly List<int> linesToCleanUp = new List<int>();
+		private static readonly List<ConsoleWriteRequest> writeRequests = new List<ConsoleWriteRequest>();
+
+		private static int uiTop = 1;
+		private static int uiBottom = 23;
+		private static int uiLeft = 1;
+		private static int uiRight = 79;
+
+		private static int gameTop = 1;
+		private static int gameBottom = 23;
+		private static int gameLeft = 1;
+		private static int gameRight = 79;
+
+		public static int UITop => uiTop;
+		public static int UIBottom => uiBottom;
+		public static int UILeft => uiLeft;
+		public static int UIRight => uiRight;
+		public static int UICenter => (uiTop + uiBottom) / 2;
+		public static int UIMiddle => (uiLeft + uiRight) / 2;
+
+		//PENDIENTE: volver esto independiente del juego
+		public static int GameTop => gameTop;
+		public static int GameBottom => gameBottom; // 79
+		public static int GameLeft => gameLeft;
+		public static int GameRight => gameRight; //59
+		public static int GameCenter => (GameLeft + GameRight) / 2;
+		public static int GameMiddle => (GameTop + GameBottom) / 2;
+		public static Vec2 UITopLeft => new Vec2(UILeft, UITop);
+		public static Vec2 UIBottomRight => new Vec2(UIRight, UIBottom);
+		public static Vec2 GameTopLeft => new Vec2(GameLeft, GameTop);
+		public static Vec2 GameBottomRight => new Vec2(GameRight, GameBottom);
+		public static Rect UIArea {
+			get => new Rect(UITopLeft, UIBottomRight);
+			set {
+				uiLeft   = value.V1.IX;
+				uiTop    = value.V1.IY;
+				uiRight  = value.V2.IX;
+				uiBottom = value.V2.IY;
+			}
+		}
+		public static Rect GameArea {
+			get => new Rect(GameTopLeft, GameBottomRight);
+			set {
+				gameLeft   = value.V1.IX;
+				gameTop    = value.V1.IY;
+				gameRight  = value.V2.IX;
+				gameBottom = value.V2.IY;
+			}
+		}
 
 		public static void PrepareConsole(string title, short windowWidth = 80, short windowHeight = 25) {
 			Console.Title = title;
@@ -65,6 +139,12 @@ namespace GameCore {
 			Console.ResetColor();
 		}
 
+		public static void DrawSurface() {
+			foreach(ConsoleWriteRequest request in writeRequests)
+				request.Draw();
+			writeRequests.Clear();
+		}
+
 		public static int NumberCharacters(int n) {
 			return Convert.ToString(n).Length;
 		}
@@ -82,13 +162,19 @@ namespace GameCore {
 			return Convert.ToInt32(Math.Ceiling(offset));
 		}
 
+		public static void AddLineToCleanUp(int line) {
+			if(!linesToCleanUp.Contains(line))
+				linesToCleanUp.Add(line);
+		}
+
 		public static void EmptyGameFrame() {
 			string emptyLine = new string(' ', GameRight - GameLeft + 1);
-			for(int l = GameTop; l <= GameBottom; l++) {
+			foreach(int line in linesToCleanUp) {
 				Console.CursorLeft = 1;
-				Console.CursorTop = l;
+				Console.CursorTop = line;
 				Console.Write(emptyLine);
 			}
+			linesToCleanUp.Clear();
 		}
 
 		public static void DrawGameFrame(List<GameObject> instances) {
@@ -111,24 +197,16 @@ namespace GameCore {
 		}
 
 		public static void DrawText(Vec2 pos, string text) {
-			Console.SetCursorPosition(pos.IX, pos.IY);
-			Console.Write(text);
+			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text);
+			writeRequests.Add(request);
 		}
 		public static void DrawText(Vec2 pos, string text, ConsoleColor color) {
-			ConsoleColor previousFgColor = Console.ForegroundColor;
-
-			Console.ForegroundColor = color;
-			DrawText(pos, text);
-
-			Console.ForegroundColor = previousFgColor;
+			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text, color);
+			writeRequests.Add(request);
 		}
 		public static void DrawText(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
-			ConsoleColor previousBgColor = Console.BackgroundColor;
-
-			Console.BackgroundColor = bgColor;
-			DrawText(pos, text, fgColor);
-
-			Console.BackgroundColor = previousBgColor;
+			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text, fgColor, bgColor);
+			writeRequests.Add(request);
 		}
 
 		private static void DrawVerticalLine(int cursorTop, int cursorLeft, int height, char c) {
