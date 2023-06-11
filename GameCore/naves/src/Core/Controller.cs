@@ -109,39 +109,50 @@ namespace GameCore {
 		/// <summary>
 		/// <see cref="GameInput"/> de la tecla anterior a la última presionada
 		/// </summary>
-		private GameInput previousKey;
+		private GameInput previousButton;
 		/// <summary>
 		/// <see cref="GameInput"/> de la última tecla presionada
 		/// </summary>
-		private GameInput lastKey;
+		private GameInput lastButton;
 		/// <summary>
 		/// <see cref="GameInput"/> de la tecla actualmente presionada
 		/// </summary>
-		private GameInput currentKey;
+		private GameInput currentButton;
 
-		/// <inheritdoc cref="previousKey"/>
-		public GameInput PreviousKey => previousKey;
-		/// <inheritdoc cref="lastKey"/>
-		public GameInput LastKey => lastKey;
-		/// <inheritdoc cref="currentKey"/>
-		public GameInput CurrentKey => currentKey;
+		/// <inheritdoc cref="previousButton"/>
+		public GameInput PreviousButton => previousButton;
+		/// <inheritdoc cref="lastButton"/>
+		public GameInput LastButton => lastButton;
+		/// <inheritdoc cref="currentButton"/>
+		public GameInput CurrentButton => currentButton;
 
 		/// <summary>
-		/// Detecta nuevas interacciones del usuario y actualiza <see cref="PreviousKey"/>, <see cref="LastKey"/> y <see cref="CurrentKey"/>
+		/// Detecta nuevas interacciones del usuario y actualiza <see cref="PreviousButton"/>, <see cref="LastButton"/> y <see cref="CurrentButton"/>
 		/// </summary>
-		/// <remarks><see cref="CurrentKey"/> corresponderá a la tecla detectada en el tick que se la detectó</remarks>
+		/// <remarks><see cref="CurrentButton"/> corresponderá a la tecla detectada en el tick que se la detectó</remarks>
 		/// <param name="ticks"></param>
 		public void Update(long ticks) {
-			currentKey = new GameInput();
+			currentButton = new GameInput();
 
 			GameButton tempKey = this.GetGameButton();
 
 			if(tempKey == GameButton.None)
 				return;
 
-			previousKey = lastKey;
-			lastKey = new GameInput(tempKey, ticks);
-			currentKey = lastKey;
+			previousButton = lastButton;
+			lastButton = new GameInput(tempKey, ticks);
+			currentButton = lastButton;
+		}
+
+		public bool ButtonPressed(GameButton button) {
+			return this.currentButton.Button == button;
+		}
+
+		public bool ButtonReleased(GameButton button) {
+			if(this.lastButton.Button == this.currentButton.Button)
+				return true;
+
+			return this.lastButton.Button == button;
 		}
 
 		protected abstract GameButton GetGameButton();
