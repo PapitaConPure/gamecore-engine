@@ -21,19 +21,19 @@ namespace GameCore {
 		#endregion
 
 		#region Operadores
-		public static Rect operator +(Rect r) => r;
-		public static Rect operator -(Rect r) => new Rect(-r.V1, -r.V2);
-		public static Rect operator +(Rect r, Vec2 v) => r.Offset(v);
-		public static Rect operator -(Rect r, Vec2 v) => r.Offset(-v);
-		public static Rect operator +(Rect a, Rect b) => a.Transform(b);
-		public static Rect operator -(Rect a, Rect b) => a.Transform(-b);
-		public static Rect operator *(double n, Rect v) => new Rect(v.v1 * n, v.v2 * n);
-		public static Rect operator *(Rect v, double n) => new Rect(v.v1 * n, v.v2 * n);
-		public static Rect operator /(Rect v, double n) => new Rect(v.v1 / n, v.v2 / n);
-		public static Rect operator *(Rect a, Rect b) => new Rect(a.V1 * b.V1, a.V2 * b.V2);
-		public static Rect operator /(Rect a, Rect b) => new Rect(a.V1 / b.V1, a.V2 / b.V2);
-		public static bool operator ==(Rect a, Rect b) => a.Equals(b);
-		public static bool operator !=(Rect a, Rect b) => a.V1 != b.V1 || a.V2 != b.V2;
+		public static Rect operator +(Rect rect) => rect;
+		public static Rect operator -(Rect rect) => new Rect(-rect.V1, -rect.V2);
+		public static Rect operator +(Rect rect, Vec2 vector) => rect.Offset(vector);
+		public static Rect operator -(Rect rect, Vec2 vector) => rect.Offset(-vector);
+		public static Rect operator +(Rect left, Rect right) => left.Transform(right);
+		public static Rect operator -(Rect left, Rect right) => left.Transform(-right);
+		public static Rect operator *(double scalar, Rect rect) => new Rect(rect.v1 * scalar, rect.v2 * scalar);
+		public static Rect operator *(Rect rect, double scalar) => new Rect(rect.v1 * scalar, rect.v2 * scalar);
+		public static Rect operator /(Rect rect, double scalar) => new Rect(rect.v1 / scalar, rect.v2 / scalar);
+		public static Rect operator *(Rect left, Rect right) => new Rect(left.V1 * right.V1, left.V2 * right.V2);
+		public static Rect operator /(Rect left, Rect right) => new Rect(left.V1 / right.V1, left.V2 / right.V2);
+		public static bool operator ==(Rect left, Rect right) => left.Equals(right);
+		public static bool operator !=(Rect left, Rect right) => left.V1 != right.V1 || left.V2 != right.V2;
 		#endregion
 
 		#region Constructores, inicializadores y prefabricados
