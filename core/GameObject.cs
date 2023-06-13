@@ -2,6 +2,8 @@
 
 namespace GameCore {
 	public abstract class GameObject {
+		private static int idCount = 0;
+		private int id;
 		protected Vec2 pos;
 		protected Vec2 vel;
 		protected Display display;
@@ -13,12 +15,14 @@ namespace GameCore {
 		public GameObject(Vec2 pos, Vec2 vel) => this.Initialize(pos, vel);
 
 		private void Initialize(Vec2 pos, Vec2 vel) {
+			this.id = idCount++;
 			this.pos = pos;
 			this.vel = vel;
 			this.collider = new EmptyCollider(this);
 			this.layer = 127;
 		}
 
+		public int Id { get => this.id; }
 		public Vec2 Pos { get => this.pos; set => this.pos = value; }
 		public Vec2 Vel { get => this.vel; set => this.vel = value; }
 		public Collider Collider { get => this.collider; }

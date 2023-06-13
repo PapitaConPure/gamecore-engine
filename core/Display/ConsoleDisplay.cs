@@ -15,7 +15,7 @@ namespace GameCore {
 		}
 
 		public void Draw(Vec2 pos) {
-			if(!pos.InsideRect(CGUI.GameTopLeft, CGUI.GameBottomRight))
+			if(!pos.InsideRect(GUI.GameTopLeft, GUI.GameBottomRight))
 				return;
 
 			Console.ForegroundColor = this.color;
@@ -23,7 +23,7 @@ namespace GameCore {
 			Console.CursorTop = pos.IY;
 
 			Console.Write(this.symbol);
-			CGUI.AddLineToCleanUp(pos.IY);
+			GUI.ConsoleDrawer.AddLineToCleanUp(pos.IY);
 		}
 	}
 
@@ -57,12 +57,12 @@ namespace GameCore {
 
 			for(int yy = 0; yy < height; yy++) {
 				int y = cornerY + yy;
-				if(y < CGUI.GameTop || y > CGUI.GameBottom)
+				if(y < GUI.GameTop || y > GUI.GameBottom)
 					continue;
 
 				int x = cornerX;
-				int minX = Math.Max(CGUI.GameLeft, x);
-				int maxX = Math.Min(x + width, CGUI.GameRight + 1);
+				int minX = Math.Max(GUI.GameLeft, x);
+				int maxX = Math.Min(x + width, GUI.GameRight + 1);
 				string lineOutput = "";
 				for(int xx = minX; xx < maxX; xx++)
 					lineOutput += symbolLines[yy][xx - x];
@@ -70,7 +70,7 @@ namespace GameCore {
 				Console.CursorTop = y;
 				Console.CursorLeft = minX;
 				Console.Write(lineOutput);
-				CGUI.AddLineToCleanUp(y);
+				GUI.ConsoleDrawer.AddLineToCleanUp(y);
 			}
 		}
 	}
@@ -96,18 +96,18 @@ namespace GameCore {
 
 			for(int yy = 0; yy < height; yy++) {
 				int y = cornerY + yy;
-				if(y < CGUI.GameTop || y > CGUI.GameBottom)
+				if(y < GUI.GameTop || y > GUI.GameBottom)
 					continue;
 
 				int x = cornerX;
-				int maxX = Math.Min(width, CGUI.GameRight + 1 - x);
+				int maxX = Math.Min(width, GUI.GameRight + 1 - x);
 				string outputBuffer = "";
 				ConsoleColor outputColor = this.symbol.RowAt(0).CellAt(0).Color;
 				Console.ForegroundColor = outputColor;
-				Console.CursorLeft = Math.Max(CGUI.GameLeft, x);
+				Console.CursorLeft = Math.Max(GUI.GameLeft, x);
 				Console.CursorTop = y;
 
-				for(int xx = Math.Max(0, CGUI.GameLeft - x); xx < maxX; xx++) {
+				for(int xx = Math.Max(0, GUI.GameLeft - x); xx < maxX; xx++) {
 					RenderCell symbol = this.symbol.RowAt(yy).CellAt(xx);
 
 					if(outputColor == symbol.Color)
@@ -123,7 +123,7 @@ namespace GameCore {
 				if(outputBuffer.Length > 0)
 					Console.Write(outputBuffer);
 
-				CGUI.AddLineToCleanUp(y);
+				GUI.ConsoleDrawer.AddLineToCleanUp(y);
 			}
 		}
 	}

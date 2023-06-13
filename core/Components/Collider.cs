@@ -23,6 +23,11 @@ namespace GameCore {
 		public Vec2 Pos => this.owner.Pos;
 
 		/// <summary>
+		/// Caja delimitante del colisionador
+		/// </summary>
+		public abstract Rect? Bounds { get; }
+
+		/// <summary>
 		/// Determina si un vector se encuentra dentro del colisionador
 		/// </summary>
 		/// <param name="pos">Vector a comprobar</param>
@@ -58,7 +63,9 @@ namespace GameCore {
 		/// Crea un componente colisionador vacío, incapaz de detectar colisiones
 		/// </summary>
 		/// <param name="owner">Dueño del componente</param>
-		public EmptyCollider(GameObject owner) : base(owner) { }
+		public EmptyCollider(GameObject owner) : base(owner) {}
+
+		public override Rect? Bounds => null;
 
 		public override bool Inside(Vec2 pos) => false;
 		public override bool Intersect(Collider collider) => false;
@@ -91,10 +98,12 @@ namespace GameCore {
 			this.offset = offset;
 		}
 
+		public override Rect? Bounds => new Rect() + (owner.Pos + this.offset);
+
 		/// <summary>
 		/// Posición del colisionador en relación al dueño y el desplazamiento aplicado
 		/// </summary>
-		private Vec2 CalculatedPos { get => this.owner.Pos.Offset(this.offset).Rounded; }
+		private Vec2 CalculatedPos { get => (this.owner.Pos + this.offset).Rounded; }
 
 		public override bool Inside(Vec2 pos) => this.CalculatedPos == pos.Rounded;
 		public override bool Intersect(Collider collider) => collider.Inside(this.CalculatedPos);
@@ -120,6 +129,8 @@ namespace GameCore {
 		public RectCollider(GameObject owner, Rect r) : base(owner) {
 			this.r = r;
 		}
+
+		public override Rect? Bounds => r;
 
 		/// <summary>
 		/// Posición del centro del área del colisionador en relación al dueño
@@ -169,6 +180,8 @@ namespace GameCore {
 			this.r = r;
 		}
 
+		public override Rect? Bounds => new Rect(this.Pos - this.r, this.Pos + this.r);
+
 		public override bool Inside(Vec2 pos) => this.Pos.Rounded.DistanceTo(pos) <= r;
 		public override bool Intersect(Collider collider) => collider.CircleIntersect(this.Pos, this.r);
 
@@ -196,6 +209,8 @@ namespace GameCore {
 			this.polygon = polygon;
 			this.CalculateBoundingBox();
 		}
+
+		public override Rect? Bounds => this.bbox;
 
 		public override bool Inside(Vec2 pos) {
 			if(!bbox.Rounded.Inside(pos.Rounded))

@@ -57,7 +57,7 @@ namespace naves {
 			this.score = 0;
 			this.lives = 3;
 			this.bombs = 3;
-			this.power = 100;
+			this.power = 1;
 			this.value = 1000;
 			this.graze = 0;
 			this.iTicks = (int)Clock.Seconds(1);
@@ -104,22 +104,12 @@ namespace naves {
 			}
 		}
 
-		public override void OnGameInstanceDeletedEvent(GameObject sender, GameInstanceDeletedEventArgs e) {
-			if(ReferenceEquals(this, sender) || e.Reason != Game.InstanceDeletedEventReason.Killed)
-				return;
-
-			if(!(sender is Enemy))
-				return;
-
-			this.AddScore(0.1, 10);
-		}
-
 		private void DrawPlayerGUI() {
 			ConsoleColor previousForegroundColor = Console.ForegroundColor;
 			ConsoleColor previousBackgroundColor = Console.BackgroundColor;
-			int uiLeft = CGUI.GameRight + 3;
-			int uiTop = CGUI.GameTop + 3;
-			int uiWidth = CGUI.UIRight - (CGUI.GameRight + 1);
+			int uiLeft = GUI.GameRight + 3;
+			int uiTop = GUI.GameTop + 3;
+			int uiWidth = GUI.UIRight - (GUI.GameRight + 1);
 
 			Console.BackgroundColor = ConsoleColor.White;
 			Console.ForegroundColor = ConsoleColor.Black;
@@ -158,7 +148,7 @@ namespace naves {
 			string bar = (" " + name).PadRight(width - 1);
 			Console.Write(bar);
 
-			Console.SetCursorPosition(CGUI.UIRight - 10, top);
+			Console.SetCursorPosition(GUI.UIRight - 10, top);
 			Console.BackgroundColor = ConsoleColor.Black;
 			Console.ForegroundColor = topicColor;
 			Console.Write(" ");
@@ -178,29 +168,29 @@ namespace naves {
 			if(availableTutorials.Count == 0)
 				return;
 
-			Vec2 center = new Vec2(CGUI.GameCenter, CGUI.GameMiddle);
+			Vec2 center = new Vec2(GUI.GameCenter, GUI.GameMiddle);
 			string tutorialTitle = "<{~ Controles básicos ~}>";
 
-			CGUI.DrawText(center.Offset(-tutorialTitle.Length / 2, -2), tutorialTitle, ConsoleColor.DarkYellow);
+			GUI.ConsoleDrawer.DrawText(center.Offset(-tutorialTitle.Length / 2, -2), tutorialTitle, ConsoleColor.DarkYellow);
 
 			if(availableTutorials.Contains(InputTutorial.MoveUp))
-				CGUI.DrawText(center.Offset(5, 0), "↑");
+				GUI.DrawText(center.Offset(5, 0), "↑");
 			if(availableTutorials.Contains(InputTutorial.MoveLeft))
-				CGUI.DrawText(center.Offset(3, 1), "←");
+				GUI.DrawText(center.Offset(3, 1), "←");
 			if(availableTutorials.Contains(InputTutorial.MoveDown))
-				CGUI.DrawText(center.Offset(5, 1), "↓");
+				GUI.DrawText(center.Offset(5, 1), "↓");
 			if(availableTutorials.Contains(InputTutorial.MoveRight))
-				CGUI.DrawText(center.Offset(7, 1), "→");
+				GUI.DrawText(center.Offset(7, 1), "→");
 			if(availableTutorials.Contains(InputTutorial.Stop))
-				CGUI.DrawText(center.Offset(-7, 1), "Z", ConsoleColor.Red);
+				GUI.ConsoleDrawer.DrawText(center.Offset(-7, 1), "Z", ConsoleColor.Red);
 			if(availableTutorials.Contains(InputTutorial.Bomb))
-				CGUI.DrawText(center.Offset(-5, 1), "X", ConsoleColor.Green);
+				GUI.ConsoleDrawer.DrawText(center.Offset(-5, 1), "X", ConsoleColor.Green);
 			if(availableTutorials.Contains(InputTutorial.Focus))
-				CGUI.DrawText(center.Offset(-3, 1), "C", ConsoleColor.Blue);
+				GUI.ConsoleDrawer.DrawText(center.Offset(-3, 1), "C", ConsoleColor.Blue);
 		}
 
 		private void ClampPosition() {
-			this.pos.Clamp(CGUI.GameTopLeft, CGUI.GameBottomRight);
+			this.pos.Clamp(GUI.GameTopLeft, GUI.GameBottomRight);
 		}
 
 		private void ProcessShoot() {
@@ -267,7 +257,7 @@ namespace naves {
 			this.bombs = 3;
 			this.power = Math.Max(1, this.power - 1);
 
-			this.pos = new Vec2(CGUI.GameCenter, CGUI.GameBottom);
+			this.pos = new Vec2(GUI.GameCenter, GUI.GameBottom);
 			this.vel = Vec2.Zero;
 			this.SetFocused(false);
 

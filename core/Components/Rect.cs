@@ -112,12 +112,46 @@ namespace GameCore {
 
 		#region Propiedades de rectángulos derivados
 		/// <summary>
+		/// <see cref="Rect"/> con ambos vértices en la posición (0,0)
+		/// </summary>
+		public Rect Zero => new Rect();
+		/// <summary>
+		/// <see cref="Rect"/> con ambos vértices en la posición (1,1)
+		/// </summary>
+		public Rect One => new Rect(Vec2.One, Vec2.One);
+		/// <summary>
+		/// <see cref="Rect"/> ubicado en el cuadrante superior derecho
+		/// </summary>
+		public Rect QuadrantI => new Rect(Vec2.Up, Vec2.Right);
+		/// <summary>
+		/// <see cref="Rect"/> ubicado en el cuadrante superior izquierdo
+		/// </summary>
+		public Rect QuadrantII => new Rect(-Vec2.One, Vec2.Zero);
+		/// <summary>
+		/// <see cref="Rect"/> ubicado en el cuadrante inferior izquierdo
+		/// </summary>
+		public Rect QuadrantIII => new Rect(Vec2.Left, Vec2.Down);
+		/// <summary>
+		/// <see cref="Rect"/> ubicado en el cuadrante inferior derecho
+		/// </summary>
+		public Rect QuadrantIV => new Rect(Vec2.Zero, Vec2.One);
+		/// <summary>
+		/// <see cref="Rect"/> con su primer vértice en la posición (-1, -1) y su vértice opuesto en la posición (1,1)
+		/// </summary>
+		public Rect Full => new Rect(-Vec2.One, Vec2.One);
+
+		/// <summary>
 		/// Versión del <see cref="Rect"/> con su primer vértice y vértice opuesto redondeados al entero más cercano
 		/// </summary>
 		public Rect Rounded => new Rect(this.IV1, this.IV2);
 		#endregion
 
 		#region Propiedades de cálculos relacionados
+		public double Left => this.v1.X;
+		public double Right => this.v2.X;
+		public double Top => this.v1.Y;
+		public double Bottom => this.v2.Y;
+
 		public Vec2 Center => (this.V1 + this.V2) / 2;
 
 		public Vec2 RoundedCenter => ((this.V1 + this.V2) / 2).Rounded;

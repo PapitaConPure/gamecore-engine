@@ -52,7 +52,7 @@ namespace naves {
 				new KillStep(Clock.Seconds(4))
 			);
 
-			this.AddSpawn(Clock.Seconds(0), Clock.Seconds(1), new Vec2(CGUI.GameRight - 7, CGUI.GameTop), new Enemy1(), 8);
+			this.AddSpawn(Clock.Seconds(0), Clock.Seconds(1), new Vec2(GUI.GameRight - 7, GUI.GameTop), new Enemy1(), 8);
 
 			this.currentSequence = new Sequence().AddSteps(
 				new VelStep(0, Vec2.Left * 0.25),
@@ -67,7 +67,7 @@ namespace naves {
 				new KillStep(Clock.Seconds(8))
 			);
 
-			this.AddSpawn(Clock.Seconds(2), Clock.Seconds(1), new Vec2(CGUI.GameRight - 10, CGUI.GameTop - 2), new Enemy2(), 4);
+			this.AddSpawn(Clock.Seconds(2), Clock.Seconds(1), new Vec2(GUI.GameRight - 10, GUI.GameTop - 2), new Enemy2(), 4);
 
 			this.currentSequence = new Sequence().AddSteps(
 				new VelStep(0, new Vec2(1, 1)),
@@ -83,8 +83,8 @@ namespace naves {
 				new KillStep(Clock.Seconds(4))
 			);
 
-			this.AddSpawn(Clock.Seconds(8), Clock.Seconds(2), new Vec2(CGUI.GameLeft + 5, CGUI.GameTop), new Enemy1(), 16);
-			this.AddSpawn(Clock.Seconds(12), Clock.Seconds(1), new Vec2(CGUI.GameRight - 8, CGUI.GameTop), new Enemy1(), 16);
+			this.AddSpawn(Clock.Seconds(8), Clock.Seconds(2), new Vec2(GUI.GameLeft + 5, GUI.GameTop), new Enemy1(), 16);
+			this.AddSpawn(Clock.Seconds(12), Clock.Seconds(1), new Vec2(GUI.GameRight - 8, GUI.GameTop), new Enemy1(), 16);
 
 			this.currentSequence = new Sequence().AddSteps(
 				new VelStep(0 + 12 * 0, Vec2.Down * 0.5),
@@ -102,7 +102,7 @@ namespace naves {
 				new KillStep(2 + 12 * 12 + 4 * 2)
 			);
 
-			this.AddSpawn(Clock.Seconds(16), Clock.Seconds(4), new Vec2(CGUI.GameLeft + 4, CGUI.GameTop), new Enemy3(), 4);
+			this.AddSpawn(Clock.Seconds(16), Clock.Seconds(4), new Vec2(GUI.GameLeft + 4, GUI.GameTop), new Enemy3(), 4);
 		}
 	}
 }

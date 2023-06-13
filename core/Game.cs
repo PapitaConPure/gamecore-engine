@@ -15,6 +15,10 @@ namespace GameCore {
 	public static class Game {
 		#region Atributos Básicos
 		/// <summary>
+		/// Plataforma del juego
+		/// </summary>
+		private static GameTarget target;
+		/// <summary>
 		/// Contador de ticks transcurridos en el escenario actual
 		/// </summary>
 		private static long ticks = 0;
@@ -204,7 +208,9 @@ namespace GameCore {
 					controller = new FormsController();
 					break;
 				}
+				target = value;
 			}
+			get => target;
 		}
 		#endregion
 
@@ -241,9 +247,9 @@ namespace GameCore {
 				instance.Update(deltaTime);
 			OnGameEvent(new GameEventArgs(EventReason.TickProcessed));
 
-			CGUI.DrawTPS(deltaTime);
-			CGUI.EmptyGameFrame();
-			CGUI.DrawGameFrame(instances);
+			GUI.EmptyGameFrame();
+			GUI.DrawGameFrame(instances);
+			GUI.DrawTPS(deltaTime);
 			//if(Debug) {
 			//	string activeInstanceCount = Convert.ToString(instances.Count);
 			//	string disabledInstanceCount = Convert.ToString(disabledInstances.Count);
@@ -251,7 +257,7 @@ namespace GameCore {
 			//	CGUI.DrawText(CGUI.UITopLeft.Offset(1, 1), activeInstanceCount, ConsoleColor.Yellow);
 			//	CGUI.DrawText(CGUI.UITopLeft.Offset(2 + activeInstanceCount.Length, 1), disabledInstanceCount, ConsoleColor.DarkCyan);
 			//}
-			CGUI.DrawSurface();
+			GUI.DrawSurface();
 			OnGameEvent(new GameEventArgs(EventReason.TickRendered));
 
 			ticks += 1;
@@ -334,23 +340,33 @@ namespace GameCore {
 		}
 		#endregion
 
-		#region Búsqueda de Instancias
+		#region Comprobación y Búsqueda de Instancias
 		/// <summary>
 		/// Determina si existe una instancia de tipo <typeparamref name="InstanceType"/> en la escena actual
 		/// </summary>
 		/// <typeparam name="InstanceType">Tipo de instancia a comprobar</typeparam>
-		/// <returns>Si existe al menos una instancia <see cref="GameObject"/> bajo el criterio</returns>
+		/// <returns>Si existe al menos una instancia <see cref="GameObject"/> bajo el criterio, o <see langword="null"/> si no se encuentra ninguna</returns>
 		public static bool InstanceExists<InstanceType>() where InstanceType : GameObject {
 			return instances
 				.OfType<InstanceType>()
 				.Any();
 		}
 
+		public static InstanceType GetInstance<InstanceType>(int id) where InstanceType : GameObject {
+			bool HasSameId(GameObject instance) => instance.Id == id;
+			GameObject found = instances.Find(HasSameId);
+
+			if(found is InstanceType type)
+				return type;
+
+			return null;
+		}
+
 		/// <summary>
 		/// Devuelve la primer instancia de tipo <typeparamref name="InstanceType"/> encontrada en la escena actual, o <see langword="null"/> si no se encuentra ninguna
 		/// </summary>
 		/// <typeparam name="InstanceType">Tipo de instancia a buscar</typeparam>
-		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio</returns>
+		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio, o <see langword="null"/> si no se encuentra ninguna</returns>
 		public static InstanceType FindInstance<InstanceType>() where InstanceType : GameObject {
 			return instances
 				.OfType<InstanceType>()
@@ -362,7 +378,7 @@ namespace GameCore {
 		/// <remarks>Si <paramref name="self"/> fuese a ser del tipo buscado, se omite en la búsqueda</remarks>
 		/// <typeparam name="InstanceType">Tipo de instancia a buscar</typeparam>
 		/// <param name="self">Una instancia a ignorar. Generalmente la instancia que invoca este método</param>
-		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio</returns>
+		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio, o <see langword="null"/> si no se encuentra ninguna</returns>
 		public static InstanceType FindInstance<InstanceType>(GameObject self) where InstanceType : GameObject {
 			return instances
 				.OfType<InstanceType>()
@@ -375,7 +391,7 @@ namespace GameCore {
 		/// </summary>
 		/// <typeparam name="InstanceType">Tipo de instancia a buscar</typeparam>
 		/// <param name="predicate">Función para probar cada instancia con una condición</param>
-		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio</returns>
+		/// <returns>La primer instancia <see cref="GameObject"/> encontrada bajo el criterio, o <see langword="null"/> si no se encuentra ninguna</returns>
 		public static InstanceType FindInstance<InstanceType>(Func<InstanceType, bool> predicate) where InstanceType : GameObject {
 			return instances
 				.OfType<InstanceType>()

@@ -23,7 +23,7 @@ namespace naves {
 		public ContentType ItemType => this.content.Type;
 
 		protected override void MainUpdate(double deltaTime) {
-			if(this.Pos.Y > CGUI.GameBottom) {
+			if(this.Pos.Y > GUI.GameBottom) {
 				Game.DeleteInstance(this);
 				return;
 			}
@@ -32,7 +32,7 @@ namespace naves {
 		}
 
 		private void Move() {
-			this.pos.X = MathUtils.Clamp(this.Pos.X, CGUI.GameLeft, CGUI.GameRight);
+			this.pos.X = MathUtils.Clamp(this.Pos.X, GUI.GameLeft, GUI.GameRight);
 
 			Player player = Game.FindInstance<Player>();
 

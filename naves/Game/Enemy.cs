@@ -27,6 +27,7 @@ namespace naves {
 				return;
 
 			Game.DeleteInstance(this, Game.InstanceDeletedEventReason.Killed);
+			Game.FindInstance<Player>().AddScore(0.1, 10);
 			this.BurstItems(new PowerItemContent(this.powerItems));
 			this.BurstItems(new PointItemContent(this.pointItems));
 		}
