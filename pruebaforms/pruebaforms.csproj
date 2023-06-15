@@ -80,9 +80,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\core\core.csproj">
+    <ProjectReference Include="..\core\GameCore.csproj">
       <Project>{d8bb66d2-9cdf-4922-8d97-ce2376fc459a}</Project>
-      <Name>core</Name>
+      <Name>GameCore</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
