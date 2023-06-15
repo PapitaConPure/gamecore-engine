@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using GameCore;
-using System.Threading.Tasks;
 
 namespace naves {
 	class Player: GameObject {
@@ -30,26 +29,26 @@ namespace naves {
 		}
 
 		public Player(Vec2 pos) : base(pos) {
-			RenderComponent renderComponent = new RenderComponent(
-				new RenderRow(ConsoleColor.DarkMagenta, " ^^^ "),
-				new RenderRow()
+			ConsoleDisplayComponent renderComponent = new ConsoleDisplayComponent(
+				new ConsoleDisplayRow(ConsoleColor.DarkMagenta, " ^^^ "),
+				new ConsoleDisplayRow()
 					.AddCells(ConsoleColor.Cyan, '<')
 					.AddCells(ConsoleColor.White, ')')
 					.AddCells(ConsoleColor.Cyan, 'O')
 					.AddCells(ConsoleColor.White, '(')
 					.AddCells(ConsoleColor.Cyan, '>'),
-				new RenderRow(ConsoleColor.Gray, "/W#W\\")
+				new ConsoleDisplayRow(ConsoleColor.Gray, "/W#W\\")
 			);
 			this.display = new Display(new ConsoleComplexRender2D(renderComponent, true));
-			renderComponent = new RenderComponent(
-				new RenderRow(ConsoleColor.DarkMagenta, " ^^^ "),
-				new RenderRow()
+			renderComponent = new ConsoleDisplayComponent(
+				new ConsoleDisplayRow(ConsoleColor.DarkMagenta, " ^^^ "),
+				new ConsoleDisplayRow()
 					.AddCells(ConsoleColor.Red, '<')
 					.AddCells(ConsoleColor.White, ')')
 					.AddCells(ConsoleColor.Red, 'O')
 					.AddCells(ConsoleColor.White, '(')
 					.AddCells(ConsoleColor.Red, '>'),
-				new RenderRow(ConsoleColor.Gray, "/V#V\\")
+				new ConsoleDisplayRow(ConsoleColor.Gray, "/V#V\\")
 			);
 			this.focusedDisplay = new Display(new ConsoleComplexRender2D(renderComponent, true));
 			this.collider = new DotCollider(this);
@@ -328,6 +327,31 @@ namespace naves {
 
 				break;
 
+			case GameButton.AKey:
+				GUI.GameArea = GUI.GameArea.Transform(+1, 0, 0, 0);
+				Console.ResetColor();
+				Console.Clear();
+				Program.DrawBasicUI();
+				break;
+			case GameButton.WKey:
+				GUI.GameArea = GUI.GameArea.Transform(0, +1, 0, 0);
+				Console.ResetColor();
+				Console.Clear();
+				Program.DrawBasicUI();
+				break;
+			case GameButton.DKey:
+				GUI.GameArea = GUI.GameArea.Transform(0, 0, -1, 0);
+				Console.ResetColor();
+				Console.Clear();
+				Program.DrawBasicUI();
+				break;
+			case GameButton.SKey:
+				GUI.GameArea = GUI.GameArea.Transform(0, 0, 0, -1);
+				Console.ResetColor();
+				Console.Clear();
+				Program.DrawBasicUI();
+				break;
+
 			case GameButton.CKey:
 				availableTutorials.Remove(InputTutorial.Focus);
 				this.ToggleFocused();
@@ -371,66 +395,6 @@ namespace naves {
 		private void SetFocused(bool newFocused) {
 			if(this.focused != newFocused)
 				this.ToggleFocused();
-		}
-	}
-
-	class PlayerBullet: GameObject {
-		public PlayerBullet(Vec2 pos, Vec2 vel) : base(pos, vel) {
-			this.display = new Display(new ConsoleDotRender('o', ConsoleColor.DarkGray));
-			this.collider = new DotCollider(this);
-		}
-
-		protected override void MainUpdate(double deltaTime) {
-			if(this.pos.Y < 0) {
-				Game.DisableInstance(this);
-				return;
-			}
-
-			List<Enemy> collidedEnemies = Game.Collisions<Enemy>(this);
-
-			if(collidedEnemies.Count == 0)
-				return;
-
-			Parallel.ForEach(collidedEnemies, collidedEnemy => collidedEnemy.Damage(1));
-
-			Game.DisableInstance(this);
-		}
-	}
-	class PlayerBulletPool {
-		private readonly List<PlayerBullet> bullets;
-		private readonly int bulletLimit;
-		private int bulletIndex;
-
-		public PlayerBulletPool(int bulletLimit = 500) {
-			this.bulletIndex = 0;
-			this.bulletLimit = bulletLimit;
-			this.bullets = new List<PlayerBullet>();
-
-			Vec2 zeroVec = Vec2.Zero;
-			for(int i = 0; i < bulletLimit; i++) {
-				PlayerBullet bullet = new PlayerBullet(zeroVec, zeroVec);
-				this.bullets.Add(bullet);
-				Game.AddInstance(bullet);
-				Game.DisableInstance(bullet);
-			}
-				
-		}
-
-		private PlayerBullet CurrentBullet {
-			get {
-				if(this.bulletIndex < this.bulletLimit)
-					return this.bullets[this.bulletIndex++];
-
-				this.bulletIndex = 1;
-				return this.bullets[0];
-			}
-		}
-
-		public void EnableShoot(Vec2 pos, Vec2 vel) {
-			PlayerBullet currentBullet = this.CurrentBullet;
-			currentBullet.Pos = pos;
-			currentBullet.Vel = vel;
-			Game.EnableInstance(currentBullet);
 		}
 	}
 }

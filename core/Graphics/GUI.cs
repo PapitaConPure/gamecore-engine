@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
+using System.Drawing;
 
 //PENDIENTE: volver más general el dibujado de interfaz
 namespace GameCore {
@@ -7,7 +9,7 @@ namespace GameCore {
 	/// Representa una interfaz gráfica de usuario
 	/// </summary>
 	public static class GUI {
-		private static IDrawer drawer;
+		private static IRenderer drawer;
 
 		#region Dimensiones de UI y Escena
 		private static Rect uiArea   = new Rect(new Vec2(1, 1), new Vec2(79, 23));
@@ -17,15 +19,15 @@ namespace GameCore {
 		public static int UIBottom => (int)uiArea.Bottom;
 		public static int UILeft   => (int)uiArea.Left;
 		public static int UIRight  => (int)uiArea.Right;
-		public static int UICenter => MathUtils.Round(uiArea.Center.X);
-		public static int UIMiddle => MathUtils.Round(uiArea.Center.Y);
+		public static int UICenter => MathX.Round(uiArea.Center.X);
+		public static int UIMiddle => MathX.Round(uiArea.Center.Y);
 
 		public static int GameTop    => (int)gameArea.Top;
 		public static int GameBottom => (int)gameArea.Bottom;
 		public static int GameLeft   => (int)gameArea.Left;
 		public static int GameRight  => (int)gameArea.Right;
-		public static int GameCenter => MathUtils.Round(gameArea.Center.X);
-		public static int GameMiddle => MathUtils.Round(gameArea.Center.Y);
+		public static int GameCenter => MathX.Round(gameArea.Center.X);
+		public static int GameMiddle => MathX.Round(gameArea.Center.Y);
 
 		public static Vec2 UITopLeft       => uiArea.IV1;
 		public static Vec2 UIBottomRight   => uiArea.IV2;
@@ -43,12 +45,12 @@ namespace GameCore {
 		#endregion
 
 		#region Acceso a Drawer
-		public static ConsoleDrawer ConsoleDrawer {
+		public static ConsoleRenderer ConsoleDrawer {
 			get {
 				if(Game.Target != GameTarget.Console)
 					throw new NullReferenceException("No existe ningún ConsoleDrawer porque el juego no es para consolas");
 
-				return (ConsoleDrawer)drawer;
+				return (ConsoleRenderer)drawer;
 			}
 		}
 		public static byte FormsDrawer {
@@ -79,31 +81,55 @@ namespace GameCore {
 			Console.CursorVisible = false;
 			Console.TreatControlCAsInput = true;
 
-			drawer = new ConsoleDrawer();
+			drawer = new ConsoleRenderer();
 		}
-		public static void PrepareForms(string title, short windowWidth = 80, short windowHeight = 25) {
+		/// <summary>
+		/// Crea un nuevo <see cref="Form"/> y lo prepara para correr y renderizar un juego.
+		/// Así mismo, se configura a <see cref="GUI.FormsDrawer"/> para renderizar cosas específicas de Forms
+		/// </summary>
+		/// <remarks>
+		/// Requiere ejecutarse en una aplicación de Windows Forms
+		/// Al finalizar la preparación, ejecuta inmediatamente <see cref="Application.Run"/> con la ventana creada
+		/// </remarks>
+		/// <param name="title"></param>
+		/// <param name="windowWidth"></param>
+		/// <param name="windowHeight"></param>
+		public static void PrepareForms(string title, short windowWidth = 320, short windowHeight = 240) {
 			if(Game.Target != GameTarget.Forms)
 				throw new InvalidOperationException("No se puede preparar el formulario porque el juego no apunta a Windows Forms");
 
-			Console.Title = title;
+			#region Crear y preparar Formulario
+			GameWindow gameWindow = new GameWindow();
 
-			Console.Clear();
-			Console.ResetColor();
-			Console.WindowWidth = windowWidth;
-			Console.WindowHeight = windowHeight;
-			Console.BufferWidth = windowWidth + 1;
-			Console.BufferHeight = windowHeight + 1;
+			gameWindow.Text = title;
+			gameWindow.FormBorderStyle = FormBorderStyle.FixedSingle;
+			gameWindow.MaximizeBox = false;
+			gameWindow.MinimizeBox = false;
+			gameWindow.Size = new Size(windowWidth, windowHeight);
+			#endregion
 
-			Console.OutputEncoding = System.Text.Encoding.Unicode;
-			Console.CursorVisible = false;
-			Console.TreatControlCAsInput = true;
+			#region Añadir PictureBox para renderizar
+			PictureBox pbViewport = new PictureBox();
+			pbViewport.Name = "pbViewport";
+			pbViewport.Dock = DockStyle.Fill;
+			pbViewport.BackColor = Color.Black;
+			Bitmap bitmap = new Bitmap(windowWidth, windowHeight);
+			pbViewport.Image = bitmap;
+			gameWindow.Controls.Add(pbViewport);
+			#endregion
+
+			drawer = new FormsRenderer(pbViewport);
+
+			Game.Controller.SubscribeToWindow(gameWindow);
+
+			Application.Run(gameWindow);
 		}
 		#endregion
 
 		#region Dibujado Cíclico General
 		public static void EmptyGameFrame() => drawer.EmptyGameFrame();
 
-		public static void DrawGameFrame(List<GameObject> instances) => drawer.DrawGameFrame(instances);
+		public static void DrawGameFrame(List<GameObject> instances) => drawer.RenderGameFrame(instances);
 
 		public static void DrawSurface() => drawer.DrawSurface();
 
@@ -146,45 +172,11 @@ namespace GameCore {
 		#endregion
 	}
 
-	public interface IDrawer {
+	public interface IRenderer {
 		void EmptyGameFrame();
-		void DrawGameFrame(List<GameObject> instances);
+		void RenderGameFrame(List<GameObject> instances);
 		void DrawTPS(double deltaTime);
 		void DrawSurface();
 		void DrawText(Vec2 pos, string text);
-	}
-
-	public struct ConsoleWriteRequest {
-		private readonly Vec2 pos;
-		private readonly string text;
-		private readonly ConsoleColor fgColor;
-		private readonly ConsoleColor bgColor;
-
-		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
-			this.pos = pos;
-			this.text = text;
-			this.fgColor = fgColor;
-			this.bgColor = bgColor;
-		}
-		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor) {
-			this.pos = pos;
-			this.text = text;
-			this.fgColor = fgColor;
-			this.bgColor = ConsoleColor.Black;
-		}
-		public ConsoleWriteRequest(Vec2 pos, string text) {
-			this.pos = pos;
-			this.text = text;
-			this.fgColor = ConsoleColor.White;
-			this.bgColor = ConsoleColor.Black;
-		}
-
-		public void Draw() {
-			Console.SetCursorPosition(pos.IX, pos.IY);
-			Console.ForegroundColor = fgColor;
-			Console.BackgroundColor = bgColor;
-			Console.Write(text);
-			GUI.ConsoleDrawer.AddLineToCleanUp(pos.IY);
-		}
 	}
 }

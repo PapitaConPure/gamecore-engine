@@ -114,31 +114,31 @@ namespace GameCore {
 		/// <summary>
 		/// <see cref="Rect"/> con ambos vértices en la posición (0,0)
 		/// </summary>
-		public Rect Zero => new Rect();
+		public static Rect Zero => new Rect();
 		/// <summary>
 		/// <see cref="Rect"/> con ambos vértices en la posición (1,1)
 		/// </summary>
-		public Rect One => new Rect(Vec2.One, Vec2.One);
+		public static Rect One => new Rect(Vec2.One, Vec2.One);
 		/// <summary>
 		/// <see cref="Rect"/> ubicado en el cuadrante superior derecho
 		/// </summary>
-		public Rect QuadrantI => new Rect(Vec2.Up, Vec2.Right);
+		public static Rect QuadrantI => new Rect(Vec2.Up, Vec2.Right);
 		/// <summary>
 		/// <see cref="Rect"/> ubicado en el cuadrante superior izquierdo
 		/// </summary>
-		public Rect QuadrantII => new Rect(-Vec2.One, Vec2.Zero);
+		public static Rect QuadrantII => new Rect(-Vec2.One, Vec2.Zero);
 		/// <summary>
 		/// <see cref="Rect"/> ubicado en el cuadrante inferior izquierdo
 		/// </summary>
-		public Rect QuadrantIII => new Rect(Vec2.Left, Vec2.Down);
+		public static Rect QuadrantIII => new Rect(Vec2.Left, Vec2.Down);
 		/// <summary>
 		/// <see cref="Rect"/> ubicado en el cuadrante inferior derecho
 		/// </summary>
-		public Rect QuadrantIV => new Rect(Vec2.Zero, Vec2.One);
+		public static Rect QuadrantIV => new Rect(Vec2.Zero, Vec2.One);
 		/// <summary>
 		/// <see cref="Rect"/> con su primer vértice en la posición (-1, -1) y su vértice opuesto en la posición (1,1)
 		/// </summary>
-		public Rect Full => new Rect(-Vec2.One, Vec2.One);
+		public static Rect Full => new Rect(-Vec2.One, Vec2.One);
 
 		/// <summary>
 		/// Versión del <see cref="Rect"/> con su primer vértice y vértice opuesto redondeados al entero más cercano

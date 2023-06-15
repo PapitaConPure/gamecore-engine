@@ -3,21 +3,21 @@ using System.Globalization;
 using System.Collections.Generic;
 
 namespace GameCore {
-	public class ConsoleDrawer: IDrawer {
-		private static readonly List<int> linesToCleanUp = new List<int>();
-		private static readonly List<ConsoleWriteRequest> writeRequests = new List<ConsoleWriteRequest>();
+	public class ConsoleRenderer: IRenderer {
+		private readonly List<int> linesToCleanUp = new List<int>();
+		private readonly List<ConsoleWriteRequest> writeRequests = new List<ConsoleWriteRequest>();
 
 		public void EmptyGameFrame() {
 			string emptyLine = new string(' ', GUI.GameRight - GUI.GameLeft + 1);
 			foreach(int line in linesToCleanUp) {
-				Console.CursorLeft = 1;
+				Console.CursorLeft = GUI.GameLeft;
 				Console.CursorTop = line;
 				Console.Write(emptyLine);
 			}
 			linesToCleanUp.Clear();
 		}
 
-		public void DrawGameFrame(List<GameObject> instances) {
+		public void RenderGameFrame(List<GameObject> instances) {
 			foreach(GameObject instance in instances)
 				instance.Draw();
 		}
@@ -29,7 +29,7 @@ namespace GameCore {
 		}
 
 		public void DrawTPS(double deltaTime) {
-			double tps = 1000 / MathUtils.Clamp(Clock.BaseTick + Math.Max(0, deltaTime - Clock.BaseTick), 1, 1000);
+			double tps = 1000 / MathX.Clamp(Clock.BaseTick + Math.Max(0, deltaTime - Clock.BaseTick), 1, 1000);
 			string ticksSuffix = " TPS";
 			int ticksCharacters = GUI.NumberCharacters(Math.Round(tps)) + 3 + /*ticksPrefix.Length*/ +ticksSuffix.Length;
 			Console.ForegroundColor = ConsoleColor.White;
@@ -51,13 +51,47 @@ namespace GameCore {
 			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text);
 			writeRequests.Add(request);
 		}
-		public static void DrawText(Vec2 pos, string text, ConsoleColor color) {
+		public void DrawText(Vec2 pos, string text, ConsoleColor color) {
 			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text, color);
 			writeRequests.Add(request);
 		}
-		public static void DrawText(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
+		public void DrawText(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
 			ConsoleWriteRequest request = new ConsoleWriteRequest(pos, text, fgColor, bgColor);
 			writeRequests.Add(request);
+		}
+	}
+
+	public struct ConsoleWriteRequest {
+		private readonly Vec2 pos;
+		private readonly string text;
+		private readonly ConsoleColor fgColor;
+		private readonly ConsoleColor bgColor;
+
+		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor, ConsoleColor bgColor) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = fgColor;
+			this.bgColor = bgColor;
+		}
+		public ConsoleWriteRequest(Vec2 pos, string text, ConsoleColor fgColor) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = fgColor;
+			this.bgColor = ConsoleColor.Black;
+		}
+		public ConsoleWriteRequest(Vec2 pos, string text) {
+			this.pos = pos;
+			this.text = text;
+			this.fgColor = ConsoleColor.White;
+			this.bgColor = ConsoleColor.Black;
+		}
+
+		public void Draw() {
+			Console.SetCursorPosition(pos.IX, pos.IY);
+			Console.ForegroundColor = fgColor;
+			Console.BackgroundColor = bgColor;
+			Console.Write(text);
+			GUI.ConsoleDrawer.AddLineToCleanUp(pos.IY);
 		}
 	}
 }

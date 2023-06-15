@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace GameCore {
 	public class Display {
 		private bool visible;
-		private readonly IDisplay drawer;
+		private readonly IDisplay display;
 
 		public Display(IDisplay drawer, bool visible = true) {
 			this.visible = visible;
-			this.drawer = drawer;
+			this.display = drawer;
 		}
 
 		public bool Visible { get => this.visible; set => this.visible = value; }
 
 		public void Draw(Vec2 pos) {
 			if(!this.visible) return;
-			this.drawer.Draw(pos);
+			this.display.Draw(pos);
 		}
 	}
 

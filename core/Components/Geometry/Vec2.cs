@@ -215,8 +215,8 @@ namespace GameCore {
 		/// <param name="proportion">Proporción de la interpolación, siendo 0 el inicio y 1 el final</param>
 		/// <returns>El <see cref="Vec2"/> resultante de la interpolación</returns>
 		public Vec2 Lerp(Vec2 end, double proportion) {
-			double xx = MathUtils.Lerp(this.x, end.x, proportion);
-			double yy = MathUtils.Lerp(this.y, end.y, proportion);
+			double xx = MathX.Lerp(this.x, end.x, proportion);
+			double yy = MathX.Lerp(this.y, end.y, proportion);
 
 			return new Vec2(xx, yy);
 		}
@@ -319,6 +319,15 @@ namespace GameCore {
 
 			return this.InsideRect(x1, y1, x2, y2);
 		}
+		/// <summary>
+		/// Determina si este <see cref="Vec2"/> se encuentra dentro de un rectángulo
+		/// </summary>
+		/// <param name="v1">La posición de la primer esquina del rectángulo</param>
+		/// <param name="v2">La posición de la esquina opuesta del rectángulo</param>
+		/// <returns><c>true</c> si el <see cref="Vec2"/> está dentro de la recta</returns>
+		public bool InsideRect(Rect r) {
+			return r.Inside(this.x, this.y);
+		}
 		#endregion
 
 		#region Métodos de manipulación de vectores
@@ -355,8 +364,8 @@ namespace GameCore {
 				y2 = t;
 			}
 
-			this.x = MathUtils.Clamp(this.x, x1, x2);
-			this.y = MathUtils.Clamp(this.y, y1, y2);
+			this.x = MathX.Clamp(this.x, x1, x2);
+			this.y = MathX.Clamp(this.y, y1, y2);
 		}
 		/// <summary>
 		/// Restringe este vector dentro del área de los dos vectores especificados

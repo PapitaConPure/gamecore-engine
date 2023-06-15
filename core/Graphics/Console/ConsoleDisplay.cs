@@ -76,10 +76,10 @@ namespace GameCore {
 	}
 
 	public class ConsoleComplexRender2D: IDisplay {
-		private readonly RenderComponent symbol;
+		private readonly ConsoleDisplayComponent symbol;
 		private readonly bool centered;
 
-		public ConsoleComplexRender2D(RenderComponent symbol, bool centered = false) {
+		public ConsoleComplexRender2D(ConsoleDisplayComponent symbol, bool centered = false) {
 			this.symbol = symbol;
 			this.centered = centered;
 		}
@@ -108,7 +108,7 @@ namespace GameCore {
 				Console.CursorTop = y;
 
 				for(int xx = Math.Max(0, GUI.GameLeft - x); xx < maxX; xx++) {
-					RenderCell symbol = this.symbol.RowAt(yy).CellAt(xx);
+					ConsoleDisplayCell symbol = this.symbol.RowAt(yy).CellAt(xx);
 
 					if(outputColor == symbol.Color)
 						outputBuffer += symbol.Symbol;

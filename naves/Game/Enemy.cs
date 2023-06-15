@@ -69,16 +69,16 @@ namespace naves {
 		public int PowerItems() => 3;
 		public int PointItems() => 4;
 		public Display Display() {
-			RenderComponent component = new RenderComponent(
-				new RenderRow(
-					new RenderCell('<', ConsoleColor.White),
-					new RenderCell('O', ConsoleColor.Yellow),
-					new RenderCell('>', ConsoleColor.White)
+			ConsoleDisplayComponent component = new ConsoleDisplayComponent(
+				new ConsoleDisplayRow(
+					new ConsoleDisplayCell('<', ConsoleColor.White),
+					new ConsoleDisplayCell('O', ConsoleColor.Yellow),
+					new ConsoleDisplayCell('>', ConsoleColor.White)
 				),
-				new RenderRow(
-					new RenderCell('¡', ConsoleColor.Magenta),
-					new RenderCell('¡', ConsoleColor.DarkMagenta),
-					new RenderCell('¡', ConsoleColor.Magenta)
+				new ConsoleDisplayRow(
+					new ConsoleDisplayCell('¡', ConsoleColor.Magenta),
+					new ConsoleDisplayCell('¡', ConsoleColor.DarkMagenta),
+					new ConsoleDisplayCell('¡', ConsoleColor.Magenta)
 				)
 			);
 

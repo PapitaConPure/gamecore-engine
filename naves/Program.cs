@@ -15,6 +15,7 @@ namespace naves {
 
 			Player player = new Player(new Vec2(GUI.GameCenter, GUI.GameBottom - 6));
 			Game.AddInstance(player);
+
 			StageSequencer sequencer = new StageSequencer(new List<Spawner>());
 			Game.AddInstance(sequencer);
 
@@ -45,32 +46,44 @@ namespace naves {
 			Console.ReadKey(true);
 		}
 
-		private static void DrawBasicUI() {
+		public static void DrawBasicUI() {
 			//Líneas horizontales
-			string hbar1 = new string('═', GUI.GameRight);
+			string hbar1 = new string('═', GUI.GameRight - GUI.GameLeft + 1);
 			string hbar2 = new string('═', GUI.UIRight - GUI.GameRight - 2);
+
+			int gbLeft = GUI.GameLeft - 1;
+			int gbRight = GUI.GameRight + 1;
+			int gbTop = GUI.GameTop - 1;
+			int gbBottom = GUI.GameBottom + 1;
+
+			Console.ForegroundColor = ConsoleColor.White;
+			Console.BackgroundColor = ConsoleColor.Black;
+			Console.CursorTop = gbTop;
+			Console.CursorLeft = gbLeft;
 			Console.WriteLine("╔" + hbar1 + "╦" + hbar2 + "╗");
-			Console.CursorTop = 24;
+			Console.CursorTop = gbBottom;
+			Console.CursorLeft = gbLeft;
 			Console.WriteLine("╚" + hbar1 + "╩" + hbar2 + "╝");
 			Console.CursorTop = 0; //Evita scrollear hacia abajo
 
 			//Líneas verticales
-			GUI.DrawVerticalLine(new Vec2(0, 1), GUI.GameBottom, '║');
-			GUI.DrawVerticalLine(new Vec2(GUI.GameRight + 1, 1), GUI.GameBottom, '║');
-			GUI.DrawVerticalLine(new Vec2(GUI.UIRight, 1), GUI.GameBottom, '║');
+			int uiHeight = GUI.GameBottom - GUI.GameTop + 1;
+			GUI.DrawVerticalLine(new Vec2(gbLeft, GUI.GameTop), uiHeight, '║');
+			GUI.DrawVerticalLine(new Vec2(gbRight, GUI.GameTop), uiHeight, '║');
+			GUI.DrawVerticalLine(new Vec2(GUI.UIRight, GUI.GameTop), uiHeight, '║');
 
 			//Panel vertical
 			Console.BackgroundColor = ConsoleColor.DarkBlue;
 			int panelWidth = GUI.UIRight - GUI.GameRight - 2;
 			string filler = new string(' ', panelWidth);
-			for(int i = 1; i < GUI.GameBottom - GUI.GameTop + 2; i++) {
+			for(int i = GUI.GameTop; i < gbBottom; i++) {
 				Console.SetCursorPosition(GUI.GameRight + 2, i);
 				Console.Write(filler);
 			}
 
 			string diffName = "~NORMAL~";
-			Console.CursorTop = 2;
-			Console.CursorLeft = GUI.CenteredStringOffset(GUI.GameRight + 1, GUI.UIRight, diffName);
+			Console.CursorTop = GUI.UITop + 1;
+			Console.CursorLeft = GUI.CenteredStringOffset(gbRight, GUI.UIRight, diffName);
 			Console.BackgroundColor = ConsoleColor.Cyan;
 			Console.ForegroundColor = ConsoleColor.Black;
 			Console.Write(diffName);

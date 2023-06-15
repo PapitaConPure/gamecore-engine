@@ -32,7 +32,7 @@ namespace naves {
 		}
 
 		private void Move() {
-			this.pos.X = MathUtils.Clamp(this.Pos.X, GUI.GameLeft, GUI.GameRight);
+			this.pos.X = MathX.Clamp(this.Pos.X, GUI.GameLeft, GUI.GameRight);
 
 			Player player = Game.FindInstance<Player>();
 

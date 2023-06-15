@@ -193,10 +193,16 @@ namespace GameCore {
 		/// <inheritdoc cref="rng"/>
 		public static Random RNG { get => rng; }
 
+		/// <inheritdoc cref="controller"/>
+		public static Controller Controller => controller;
 		/// <inheritdoc cref="Controller.previousButton"/>
 		public static GameInput PreviousButton => controller.PreviousButton;
 		/// <inheritdoc cref="Controller.currentButton"/>
 		public static GameInput CurrentButton => controller.CurrentButton;
+		/// <inheritdoc cref="Controller.pressedButton"/>
+		public static GameInput PressedButton => controller.PressedButton;
+		/// <inheritdoc cref="Controller.releasedButton"/>
+		public static GameInput ReleasedButton => controller.ReleasedButton;
 
 		public static GameTarget Target {
 			set {
@@ -228,6 +234,7 @@ namespace GameCore {
 				currentDate = DateTime.Now.Ticks / (double)TimeSpan.TicksPerMillisecond;
 				deltaTime = currentDate - lastUpdate;
 				if(deltaTime >= refreshRate) {
+					Console.WriteLine(deltaTime);
 					lastUpdate = DateTime.Now.Ticks / (double)TimeSpan.TicksPerMillisecond;
 					UpdateGameState(deltaTime);
 				}
@@ -238,7 +245,7 @@ namespace GameCore {
 		/// Procesa un tick del juego
 		/// </summary>
 		/// <param name="deltaTime">La cantidad de milisegundos transcurridos entre este tick y el anterior</param>
-		private static void UpdateGameState(double deltaTime) {
+		public static void UpdateGameState(double deltaTime) {
 			OnGameEvent(new GameEventArgs(EventReason.TickStarted));
 
 			controller.Update(ticks);
@@ -250,13 +257,15 @@ namespace GameCore {
 			GUI.EmptyGameFrame();
 			GUI.DrawGameFrame(instances);
 			GUI.DrawTPS(deltaTime);
-			//if(Debug) {
-			//	string activeInstanceCount = Convert.ToString(instances.Count);
-			//	string disabledInstanceCount = Convert.ToString(disabledInstances.Count);
+			if(Debug) {
+				string activeInstanceCount = Convert.ToString(instances.Count);
+				string disabledInstanceCount = Convert.ToString(disabledInstances.Count);
 
-			//	CGUI.DrawText(CGUI.UITopLeft.Offset(1, 1), activeInstanceCount, ConsoleColor.Yellow);
-			//	CGUI.DrawText(CGUI.UITopLeft.Offset(2 + activeInstanceCount.Length, 1), disabledInstanceCount, ConsoleColor.DarkCyan);
-			//}
+				if(Target == GameTarget.Console) {
+					GUI.ConsoleDrawer.DrawText(GUI.UITopLeft.Offset(1, 1), activeInstanceCount, ConsoleColor.Yellow);
+					GUI.ConsoleDrawer.DrawText(GUI.UITopLeft.Offset(2 + activeInstanceCount.Length, 1), disabledInstanceCount, ConsoleColor.DarkCyan);
+				}
+			}
 			GUI.DrawSurface();
 			OnGameEvent(new GameEventArgs(EventReason.TickRendered));
 
@@ -498,19 +507,19 @@ namespace GameCore {
 		/// Entre 1 y 1000, por defecto 60
 		/// </summary>
 		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
-		public static double TicksPerSecond { get => tps; set => tps = MathUtils.Clamp(value, 1, 1000); }
+		public static double TicksPerSecond { get => tps; set => tps = MathX.Clamp(value, 1, 1000); }
 
 		/// <summary>
 		/// Duración de un tick en milisegundos
 		/// </summary>
 		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
-		public static double BaseTick { get => 1000 / TicksPerSecond; }
+		public static double BaseTick { get => 1000d / TicksPerSecond; }
 
 		/// <summary>
 		/// Duración de un segundo en ticks
 		/// </summary>
 		/// <remarks>Por cada tick, se procesan y dibujan los elementos de la escena actual del juego</remarks>
-		public static double Second { get => 1000 / BaseTick; }
+		public static double Second { get => 1000d / BaseTick; }
 		#endregion
 
 		#region Traducción de Tiempo a Ticks
